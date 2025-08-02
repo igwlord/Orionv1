@@ -18,6 +18,7 @@
             --bg-light: #F4E9E0; /* Beige */
             --text-light: #4A4A4A;
             --primary-light: #E57373; /* Coral */
+            --primary-light-rgb: 229, 115, 115;
             --secondary-light: #A5D6A7; /* Verde Seco */
             --accent-light: #FFB74D; /* Naranja Terracota */
             --card-light: #FFFFFF;
@@ -27,6 +28,7 @@
             --bg-dark: #110F1A; /* Azul Noche profundo */
             --text-dark: #E0E0E0;
             --primary-dark: #C084FC; /* Violeta */
+            --primary-dark-rgb: 192, 132, 252;
             --secondary-dark: #F472B6; /* Magenta */
             --accent-dark: #FBBF24; /* Dorado suave */
             --card-dark: #1E1B2E;
@@ -151,6 +153,31 @@
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
         }
+
+        /* Animación para el punto de notificación */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+        }
+        .notification-dot {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-dark);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        .light .notification-dot {
+            background-color: var(--accent-light);
+        }
     </style>
 </head>
 <body class="transition-colors duration-500 bg-theme">
@@ -182,7 +209,7 @@
         <nav id="main-nav" class="hidden md:flex flex-col items-center w-20 bg-theme-card/10 border-r border-theme p-4">
             <div class="font-display text-2xl font-bold text-theme-primary">O</div>
             <div class="space-y-6 mt-6">
-                <button data-section="dashboard" class="nav-btn p-3 rounded-lg bg-theme-primary text-white"><i data-feather="home"></i></button>
+                <button data-section="dashboard" class="nav-btn relative p-3 rounded-lg bg-theme-primary text-white"><i data-feather="home"></i></button>
                 <button data-section="tasks" class="nav-btn p-3 rounded-lg"><i data-feather="check-square"></i></button>
                 <button data-section="calendar" class="nav-btn p-3 rounded-lg"><i data-feather="calendar"></i></button>
                 <button data-section="kaizen" class="nav-btn p-3 rounded-lg"><i data-feather="zap"></i></button>
@@ -203,7 +230,7 @@
         <div id="mobile-menu" class="hidden md:hidden fixed inset-0 bg-theme/90 backdrop-blur-lg z-50 flex flex-col items-center justify-center">
              <button id="close-mobile-menu" class="absolute top-6 right-6 p-2"><i data-feather="x"></i></button>
              <div class="flex flex-col items-center justify-center flex-grow space-y-8">
-                <button data-section="dashboard" class="mobile-nav-btn text-2xl">Dashboard</button>
+                <button data-section="dashboard" class="mobile-nav-btn relative text-2xl">Dashboard</button>
                 <button data-section="tasks" class="mobile-nav-btn text-2xl">Tareas</button>
                 <button data-section="calendar" class="mobile-nav-btn text-2xl">Calendario</button>
                 <button data-section="kaizen" class="mobile-nav-btn text-2xl">Kaizen</button>
@@ -223,32 +250,25 @@
             <section id="dashboard" class="app-section">
                 <h2 class="text-3xl font-bold mb-2">Hola, <span id="user-name"></span></h2>
                 <p class="text-lg text-gray-400 mb-8">¿Qué vas a mejorar hoy?</p>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Widgets -->
-                    <div class="bg-theme-card p-6 rounded-xl shadow-lg flex items-center space-x-4">
-                        <div class="bg-yellow-500/20 text-yellow-400 p-4 rounded-full"><i data-feather="loader"></i></div>
-                        <div>
-                            <p class="text-gray-400">Por hacer</p>
-                            <p id="tasks-todo-count" class="text-3xl font-bold">0</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-8">
+                        <!-- Tareas para Hoy -->
+                        <div class="bg-theme-card p-6 rounded-xl shadow-lg border-2 border-theme-primary">
+                            <h3 class="text-2xl font-bold mb-4">Tareas para Hoy</h3>
+                            <div id="today-tasks-list" class="space-y-3"></div>
+                        </div>
+                        <!-- Próximas Tareas -->
+                        <div class="bg-theme-card p-6 rounded-xl shadow-lg">
+                            <h3 class="text-2xl font-bold mb-4">Próximas Tareas</h3>
+                            <div id="upcoming-tasks-list" class="space-y-3"></div>
                         </div>
                     </div>
-                    <div class="bg-theme-card p-6 rounded-xl shadow-lg flex items-center space-x-4">
-                        <div class="bg-green-500/20 text-green-400 p-4 rounded-full"><i data-feather="check"></i></div>
-                        <div>
-                            <p class="text-gray-400">Completadas</p>
-                            <p id="tasks-completed-count" class="text-3xl font-bold">0</p>
-                        </div>
-                    </div>
-                    <div class="bg-theme-card p-6 rounded-xl shadow-lg flex flex-col justify-center items-center">
-                        <p class="text-gray-400 mb-2">Progreso Total</p>
-                        <div class="relative w-32 h-32">
-                            <svg class="w-full h-full" viewBox="0 0 36 36">
-                                <path class="text-gray-700" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
-                                <path id="progress-ring" class="text-theme-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3" stroke-dasharray="0, 100" stroke-linecap="round"></path>
-                            </svg>
-                            <div id="progress-text" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xl font-bold">0%</div>
-                        </div>
+                    <!-- Racha de Productividad -->
+                    <div class="bg-theme-card p-6 rounded-xl shadow-lg flex flex-col items-center justify-center text-center">
+                        <i data-feather="award" class="w-12 h-12 text-theme-accent mb-2"></i>
+                        <p class="text-5xl font-bold" id="streak-count">0</p>
+                        <p class="text-gray-400">Días de racha</p>
+                        <p class="text-xs text-gray-500 mt-4">Completa al menos una tarea cada día para mantener tu racha.</p>
                     </div>
                 </div>
             </section>
@@ -258,6 +278,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <h2 class="text-3xl font-bold">Tareas y Proyectos</h2>
                     <div class="flex items-center gap-2 w-full md:w-auto">
+                        <button id="quick-save-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity flex-shrink-0"><i data-feather="save" class="inline-block -mt-1"></i></button>
                         <button id="create-project-btn" class="bg-theme-secondary text-white px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity flex-shrink-0"><i data-feather="folder-plus" class="inline-block -mt-1"></i></button>
                         <button id="create-task-btn" class="bg-theme-primary text-white px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity flex-shrink-0"><i data-feather="plus" class="inline-block -mt-1"></i> Crear Tarea</button>
                     </div>
@@ -370,9 +391,9 @@
                     <div class="bg-theme-card p-4 rounded-lg">
                         <h3 class="font-bold mb-3">Gestión de Datos</h3>
                         <div class="flex flex-col md:flex-row gap-4">
-                            <button id="export-json-btn" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Exportar JSON</button>
+                            <button id="export-json-btn" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Guardar mis datos</button>
                             <label class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors text-center cursor-pointer">
-                                <span>Importar JSON</span>
+                                <span>Cargar mis datos</span>
                                 <input type="file" id="import-json-input" class="hidden" accept=".json">
                             </label>
                         </div>
@@ -493,8 +514,8 @@
         <!-- Modal de Información -->
         <div id="info-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-theme-card rounded-lg shadow-2xl p-8 w-full max-w-sm text-center transform transition-all opacity-0 -translate-y-10" role="alertdialog" aria-modal="true">
-                <div id="info-icon-container" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
-                    <i data-feather="info" class="h-6 w-6 text-blue-600"></i>
+                <div id="info-icon-container" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4">
+                    <!-- Icono dinámico aquí -->
                 </div>
                 <h3 id="info-title" class="text-lg font-medium leading-6"></h3>
                 <div class="mt-2">
@@ -520,7 +541,9 @@
         const AppState = {
             user: {
                 name: 'Usuario',
-                theme: 'dark'
+                theme: 'dark',
+                streak: 0,
+                lastCompletionDate: null,
             },
             projects: [],
             tasks: [],
@@ -559,14 +582,14 @@
     
             // Dashboard
             userName: document.getElementById('user-name'),
-            tasksTodoCount: document.getElementById('tasks-todo-count'),
-            tasksCompletedCount: document.getElementById('tasks-completed-count'),
-            progressRing: document.getElementById('progress-ring'),
-            progressText: document.getElementById('progress-text'),
+            todayTasksList: document.getElementById('today-tasks-list'),
+            upcomingTasksList: document.getElementById('upcoming-tasks-list'),
+            streakCount: document.getElementById('streak-count'),
     
             // Tareas y Filtros
             createTaskBtn: document.getElementById('create-task-btn'),
             createProjectBtn: document.getElementById('create-project-btn'),
+            quickSaveBtn: document.getElementById('quick-save-btn'),
             todoColumn: document.getElementById('todo-column'),
             doingColumn: document.getElementById('doing-column'),
             completedColumn: document.getElementById('completed-column'),
@@ -675,16 +698,34 @@
             // -- Renderizado principal y selectivo --
             renderDashboard() {
                 DOM.userName.textContent = AppState.user.name || 'Usuario';
-                const todoTasks = AppState.tasks.filter(t => t.status !== 'completed').length;
-                const completedTasks = AppState.tasks.filter(t => t.status === 'completed').length;
-                const totalTasks = AppState.tasks.length;
                 
-                DOM.tasksTodoCount.textContent = todoTasks;
-                DOM.tasksCompletedCount.textContent = completedTasks;
+                const today = new Date().toDateString();
+                const tasksToday = AppState.tasks.filter(t => t.date && new Date(t.date).toDateString() === today);
                 
-                const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-                DOM.progressText.textContent = `${progress}%`;
-                DOM.progressRing.style.strokeDasharray = `${progress}, 100`;
+                const upcomingDate = new Date();
+                upcomingDate.setDate(upcomingDate.getDate() + 5);
+                const tasksUpcoming = AppState.tasks.filter(t => {
+                    if (!t.date) return false;
+                    const taskDate = new Date(t.date);
+                    return taskDate.toDateString() !== today && taskDate > new Date() && taskDate <= upcomingDate;
+                });
+
+                DOM.todayTasksList.innerHTML = '';
+                if (tasksToday.length > 0) {
+                    tasksToday.forEach(task => DOM.todayTasksList.appendChild(this.createDashboardTaskItem(task)));
+                } else {
+                    DOM.todayTasksList.innerHTML = '<p class="text-gray-500 text-sm">No hay tareas para hoy. ¡Planifica algo o tómate un descanso!</p>';
+                }
+
+                DOM.upcomingTasksList.innerHTML = '';
+                 if (tasksUpcoming.length > 0) {
+                    tasksUpcoming.forEach(task => DOM.upcomingTasksList.appendChild(this.createDashboardTaskItem(task)));
+                } else {
+                    DOM.upcomingTasksList.innerHTML = '<p class="text-gray-500 text-sm">No hay tareas próximas en los siguientes 5 días.</p>';
+                }
+                
+                DOM.streakCount.textContent = AppState.user.streak || 0;
+                feather.replace();
             },
     
             renderTasks() {
@@ -751,8 +792,8 @@
                     dayCell.dataset.date = cellDate.toISOString().split('T')[0];
     
                     const dayNumber = document.createElement('span');
+                    dayNumber.className = 'day-number w-8 h-8 flex items-center justify-center rounded-full hover:bg-theme-card/50';
                     dayNumber.textContent = cellDate.getDate();
-                    dayNumber.className = 'w-8 h-8 flex items-center justify-center rounded-full hover:bg-theme-card/50';
                     dayCell.appendChild(dayNumber);
     
                     // Estilos para días fuera del mes (Ghost Days)
@@ -775,12 +816,6 @@
                         dayCell.appendChild(dot);
                     }
                     
-                    // Botón de creación rápida (solo escritorio)
-                    const quickAddBtn = document.createElement('button');
-                    quickAddBtn.className = 'quick-add-btn absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block bg-theme-primary text-white rounded-full w-5 h-5 flex items-center justify-center';
-                    quickAddBtn.innerHTML = '<i data-feather="plus" class="w-3 h-3"></i>';
-                    dayCell.appendChild(quickAddBtn);
-    
                     grid.appendChild(dayCell);
                 }
                 feather.replace();
@@ -849,6 +884,24 @@
                 card.className = 'text-center text-sm text-gray-500 p-6 bg-theme-card/20 rounded-lg border-2 border-dashed border-theme';
                 card.innerHTML = `<i data-feather="coffee" class="mx-auto mb-2"></i><p>${message}</p>`;
                 return card;
+            },
+
+            createDashboardTaskItem(task) {
+                const item = document.createElement('div');
+                item.className = 'bg-theme-card/50 p-3 rounded-lg flex items-center justify-between border-b border-theme last:border-b-0';
+                const priorityStyles = {
+                    high: 'bg-red-500',
+                    medium: 'bg-yellow-500',
+                    low: 'bg-green-500',
+                };
+                item.innerHTML = `
+                    <div>
+                        <p class="font-semibold">${task.name}</p>
+                        <p class="text-xs text-gray-400">${new Date(task.date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}</p>
+                    </div>
+                    <div class="w-2 h-2 rounded-full ${priorityStyles[task.priority] || 'bg-gray-500'}"></div>
+                `;
+                return item;
             },
 
             // -- Utilidades de UI --
@@ -943,6 +996,7 @@
                 this.initWelcomeAnimation();
                 this.initSortable();
                 this.initStarfield();
+                this.updateNotificationIndicator();
             },
     
             renderInitialUI() {
@@ -1005,6 +1059,9 @@
                             const task = AppState.tasks.find(t => t.id === taskId);
                             if (task) {
                                 task.status = newStatus;
+                                if (newStatus === 'completed') {
+                                    this.updateStreak();
+                                }
                                 DataService.save();
                                 UIManager.renderDashboard();
                                 UIManager.renderTasks();
@@ -1110,6 +1167,10 @@
                         btn.classList.toggle('text-white', btn.dataset.section === sectionId);
                     });
                     DOM.mobileMenu.classList.add('hidden');
+
+                    if (sectionId === 'dashboard') {
+                        this.updateNotificationIndicator(false); // Remove notification on visit
+                    }
                 };
                 DOM.navButtons.forEach(btn => btn.addEventListener('click', () => navigate(btn.dataset.section)));
                 DOM.mobileNavButtons.forEach(btn => btn.addEventListener('click', () => navigate(btn.dataset.section)));
@@ -1119,6 +1180,7 @@
                 // Tareas y Proyectos
                 DOM.createTaskBtn.addEventListener('click', () => this.openTaskModal());
                 DOM.createProjectBtn.addEventListener('click', () => ModalManager.open(DOM.projectModal));
+                DOM.quickSaveBtn.addEventListener('click', () => this.exportData());
                 DOM.taskModal.form.addEventListener('submit', (e) => this.handleTaskFormSubmit(e));
                 DOM.projectModal.form.addEventListener('submit', (e) => this.handleProjectFormSubmit(e));
                 document.getElementById('tasks').addEventListener('click', (e) => {
@@ -1144,12 +1206,12 @@
                 DOM.gotoTodayBtn.addEventListener('click', () => { AppState.currentDate = new Date(); UIManager.renderCalendar(); });
                 DOM.calendarGrid.addEventListener('click', (e) => {
                     const dayCell = e.target.closest('[data-date]');
-                    const quickAddBtn = e.target.closest('.quick-add-btn');
-                    if (quickAddBtn) {
-                        e.stopPropagation();
-                        this.openTaskModal(null, dayCell.dataset.date);
-                    } else if (dayCell) {
+                    if (!dayCell) return;
+
+                    if (e.target.classList.contains('day-number')) {
                         this.openCalendarDayModal(dayCell.dataset.date);
+                    } else {
+                        this.openTaskModal(null, dayCell.dataset.date);
                     }
                 });
     
@@ -1157,9 +1219,7 @@
                 DOM.tryKaizenBtn.addEventListener('click', () => {
                     navigate('tasks');
                     setTimeout(() => {
-                        this.openTaskModal();
-                        DOM.taskModal.nameInput.value = "Mi primera microacción";
-                        DOM.taskModal.descriptionInput.value = "Ej: Leer una página de un libro.";
+                        this.openTaskModal(null, null, true); // Pass a flag for Kaizen
                     }, 100);
                 });
     
@@ -1184,10 +1244,19 @@
             },
     
             // -- Lógica de acciones --
-            openTaskModal(taskId = null, dateString = null) {
+            openTaskModal(taskId = null, dateString = null, isKaizen = false) {
                 const modal = DOM.taskModal;
                 modal.form.reset();
                 UIManager.renderProjectFilters();
+    
+                // Reset placeholders
+                modal.nameInput.placeholder = '';
+                modal.descriptionInput.placeholder = '';
+    
+                if (isKaizen) {
+                    modal.nameInput.placeholder = "Mi primera microacción";
+                    modal.descriptionInput.placeholder = "Ej: Leer una página de un libro.";
+                }
     
                 if (taskId) {
                     const task = AppState.tasks.find(t => t.id === taskId);
@@ -1224,7 +1293,7 @@
                         id: id || `task-${Date.now()}`,
                         name: modal.nameInput.value,
                         description: modal.descriptionInput.value,
-                        date: modal.dateInput.value ? new Date(modal.dateInput.value).toISOString() : null,
+                        date: modal.dateInput.value ? new Date(modal.dateInput.value + 'T00:00:00').toISOString() : null,
                         addToCalendar: modal.calendarCheckbox.checked,
                         projectId: modal.projectSelect.value === 'none' ? null : modal.projectSelect.value,
                         priority: modal.form.querySelector('input[name="priority"]:checked').value,
@@ -1242,6 +1311,7 @@
                     UIManager.renderTasks();
                     UIManager.renderDashboard();
                     UIManager.renderCalendar();
+                    this.updateNotificationIndicator();
                     UIManager.setButtonLoading(modal.saveBtn, false);
                     ModalManager.close(modal);
                 }, 300);
@@ -1262,6 +1332,7 @@
                     UIManager.renderTasks();
                     UIManager.renderDashboard();
                     UIManager.renderCalendar();
+                    this.updateNotificationIndicator();
                     ModalManager.close(DOM.confirmModal);
                 }, { once: true });
             },
@@ -1317,11 +1388,18 @@
             },
     
             exportData() {
+                const now = new Date();
+                const pad = (num) => num.toString().padStart(2, '0');
+                const dateStamp = `${pad(now.getDate())}${pad(now.getMonth() + 1)}${now.getFullYear()}`;
+                const timeStamp = `${pad(now.getHours())}${pad(now.getMinutes())}`;
+                const fileName = `orion_backup_${dateStamp}-${timeStamp}.json`;
+
                 const dataStr = JSON.stringify(AppState, null, 2);
                 const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
                 const linkElement = document.createElement('a');
                 linkElement.setAttribute('href', dataUri);
-                linkElement.setAttribute('download', 'orion_backup_v2.json');
+                linkElement.setAttribute('download', fileName);
                 linkElement.click();
             },
     
@@ -1338,18 +1416,12 @@
                             AppState.currentDate = new Date(); // Resetear siempre la fecha actual
                             DataService.save();
                             this.renderInitialUI();
-                            ModalManager.open(DOM.infoModal);
-                            DOM.infoModal.title.textContent = 'Éxito';
-                            DOM.infoModal.message.textContent = '¡Datos importados correctamente!';
+                            this.openInfoModal({ title: 'Éxito', message: '¡Datos importados correctamente!', type: 'success' });
                         } else {
-                             ModalManager.open(DOM.infoModal);
-                             DOM.infoModal.title.textContent = 'Error de Formato';
-                             DOM.infoModal.message.textContent = 'El archivo no parece ser un backup válido de ORION.';
+                             this.openInfoModal({ title: 'Error de Formato', message: 'El archivo no parece ser un backup válido de ORION.', type: 'error' });
                         }
                     } catch (error) {
-                        ModalManager.open(DOM.infoModal);
-                        DOM.infoModal.title.textContent = 'Error de Archivo';
-                        DOM.infoModal.message.textContent = `No se pudo leer el archivo JSON. (${error.message})`;
+                        this.openInfoModal({ title: 'Error de Archivo', message: `No se pudo leer el archivo JSON. (${error.message})`, type: 'error' });
                     }
                 };
                 reader.readAsText(file);
@@ -1383,6 +1455,62 @@
                 DOM.confirmModal.confirmBtn.addEventListener('click', () => {
                     window.location.reload();
                 }, { once: true });
+            },
+
+            openInfoModal({ title, message, type = 'info' }) {
+                const modal = DOM.infoModal;
+                modal.title.textContent = title;
+                modal.message.textContent = message;
+    
+                modal.iconContainer.innerHTML = '';
+                modal.iconContainer.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4';
+    
+                if (type === 'error') {
+                    modal.iconContainer.classList.add('bg-red-100');
+                    modal.iconContainer.innerHTML = `<i data-feather="alert-triangle" class="h-6 w-6 text-red-600"></i>`;
+                } else { // 'success' or 'info'
+                    modal.iconContainer.classList.add('bg-green-100');
+                    modal.iconContainer.innerHTML = `<i data-feather="check-circle" class="h-6 w-6 text-green-600"></i>`;
+                }
+                feather.replace();
+                ModalManager.open(modal);
+            },
+
+            updateStreak() {
+                const today = new Date().toDateString();
+                if (AppState.user.lastCompletionDate === today) {
+                    return; // Ya se completó una tarea hoy
+                }
+
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+
+                if (AppState.user.lastCompletionDate === yesterday.toDateString()) {
+                    AppState.user.streak = (AppState.user.streak || 0) + 1;
+                } else {
+                    AppState.user.streak = 1;
+                }
+                AppState.user.lastCompletionDate = today;
+            },
+
+            updateNotificationIndicator(show = true) {
+                const today = new Date().toDateString();
+                const tasksToday = AppState.tasks.filter(t => t.date && new Date(t.date).toDateString() === today && t.status !== 'completed');
+                
+                const shouldShow = show && tasksToday.length > 0;
+
+                [...DOM.navButtons, ...DOM.mobileNavButtons].forEach(btn => {
+                    if (btn.dataset.section === 'dashboard') {
+                        let dot = btn.querySelector('.notification-dot');
+                        if (shouldShow && !dot) {
+                            dot = document.createElement('span');
+                            dot.className = 'notification-dot';
+                            btn.appendChild(dot);
+                        } else if (!shouldShow && dot) {
+                            dot.remove();
+                        }
+                    }
+                });
             }
         };
     
