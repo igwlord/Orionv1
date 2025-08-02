@@ -251,30 +251,30 @@
                 <h2 class="text-3xl font-bold mb-2">Hola, <span id="user-name"></span></h2>
                 <p class="text-lg text-gray-400 mb-8">¿Qué vas a mejorar hoy?</p>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 space-y-8">
+                    <div class="lg:col-span-2 flex flex-col gap-8">
                         <!-- Tareas para Hoy -->
-                        <div class="bg-theme-card p-6 rounded-xl shadow-lg border-2 border-theme-primary">
+                        <div id="dashboard-today" class="bg-theme-card p-6 rounded-xl shadow-lg border-2 border-theme-primary order-1">
                             <h3 class="text-2xl font-bold mb-4">Tareas para Hoy</h3>
                             <div id="today-tasks-list" class="space-y-3"></div>
                         </div>
                         <!-- Resumen de Proyectos -->
-                        <div class="bg-theme-card p-6 rounded-xl shadow-lg">
+                        <div id="dashboard-projects" class="bg-theme-card p-6 rounded-xl shadow-lg order-3 lg:order-2">
                             <h3 class="text-2xl font-bold mb-4">Resumen de Proyectos</h3>
                             <div id="project-summary-list" class="space-y-4"></div>
                         </div>
                     </div>
-                    <div class="space-y-8">
+                    <div class="flex flex-col gap-8">
+                         <!-- Próximas Tareas -->
+                        <div id="dashboard-upcoming" class="bg-theme-card p-6 rounded-xl shadow-lg order-2 lg:order-1">
+                            <h3 class="text-xl font-bold mb-4">Próximas Tareas</h3>
+                            <div id="upcoming-tasks-list" class="space-y-3"></div>
+                        </div>
                         <!-- Racha de Productividad -->
-                        <div class="bg-theme-card p-6 rounded-xl shadow-lg flex flex-col items-center justify-center text-center">
+                        <div id="dashboard-streak" class="bg-theme-card p-6 rounded-xl shadow-lg flex flex-col items-center justify-center text-center order-4 lg:order-2">
                             <i data-feather="award" class="w-12 h-12 text-theme-accent mb-2"></i>
                             <p class="text-5xl font-bold" id="streak-count">0</p>
                             <p class="text-gray-400">Días de racha</p>
                             <p class="text-xs text-gray-500 mt-4">Completa al menos una tarea cada día para mantener tu racha.</p>
-                        </div>
-                        <!-- Próximas Tareas -->
-                        <div class="bg-theme-card p-6 rounded-xl shadow-lg">
-                            <h3 class="text-xl font-bold mb-4">Próximas Tareas</h3>
-                            <div id="upcoming-tasks-list" class="space-y-3"></div>
                         </div>
                     </div>
                 </div>
@@ -876,7 +876,10 @@
                     item.innerHTML = `
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-semibold text-sm">${project.name}</span>
-                            <span class="text-xs text-gray-400">${completedTasks}/${totalTasks}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-400">${completedTasks}/${totalTasks}</span>
+                                <button class="delete-project-btn text-gray-500 hover:text-red-500" data-project-id="${project.id}"><i data-feather="trash-2" class="w-4 h-4"></i></button>
+                            </div>
                         </div>
                         <div class="w-full bg-theme-card/50 rounded-full h-2.5">
                             <div class="bg-theme-primary h-2.5 rounded-full" style="width: ${percentage}%"></div>
@@ -884,6 +887,7 @@
                     `;
                     DOM.projectSummaryList.appendChild(item);
                 });
+                feather.replace();
             },
 
             // -- Creación de elementos --
@@ -1230,6 +1234,10 @@
                     if (editBtn) this.openTaskModal(editBtn.closest('.task-card').dataset.id);
                     if (deleteBtn) this.handleDeleteTask(deleteBtn.closest('.task-card').dataset.id);
                 });
+                DOM.projectSummaryList.addEventListener('click', (e) => {
+                    const deleteBtn = e.target.closest('.delete-project-btn');
+                    if (deleteBtn) this.handleDeleteProject(deleteBtn.dataset.projectId);
+                });
     
                 // Filtros
                 DOM.searchTasksInput.addEventListener('input', (e) => {
@@ -1377,6 +1385,29 @@
                     ModalManager.close(DOM.confirmModal);
                 }, { once: true });
             },
+
+            handleDeleteProject(projectId) {
+                const project = AppState.projects.find(p => p.id === projectId);
+                if (!project) return;
+
+                ModalManager.open(DOM.confirmModal);
+                DOM.confirmModal.title.textContent = `Eliminar Proyecto: ${project.name}`;
+                DOM.confirmModal.message.textContent = 'Todas las tareas asociadas a este proyecto también serán eliminadas. Esta acción no se puede deshacer.';
+                
+                const newConfirmBtn = DOM.confirmModal.confirmBtn.cloneNode(true);
+                DOM.confirmModal.confirmBtn.parentNode.replaceChild(newConfirmBtn, DOM.confirmModal.confirmBtn);
+                DOM.confirmModal.confirmBtn = newConfirmBtn;
+    
+                DOM.confirmModal.confirmBtn.addEventListener('click', () => {
+                    AppState.projects = AppState.projects.filter(p => p.id !== projectId);
+                    AppState.tasks = AppState.tasks.filter(t => t.projectId !== projectId);
+                    
+                    DataService.save();
+                    this.renderInitialUI();
+                    this.updateNotificationIndicator();
+                    ModalManager.close(DOM.confirmModal);
+                }, { once: true });
+            },
     
             handleProjectFormSubmit(e) {
                 e.preventDefault();
@@ -1391,6 +1422,7 @@
                     AppState.projects.push(newProject);
                     DataService.save();
                     UIManager.renderProjectFilters();
+                    UIManager.renderProjectSummary();
                     UIManager.setButtonLoading(modal.saveBtn, false);
                     ModalManager.close(modal);
                 }, 300);
