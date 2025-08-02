@@ -147,7 +147,7 @@
             animation: star-glow-in 0.8s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         
-        #welcome-screen #slogan, #welcome-screen #start-btn {
+        #welcome-screen #slogan, #welcome-screen #start-btn, #welcome-screen footer {
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
         }
@@ -159,26 +159,40 @@
 
     <!-- PANTALLA DE BIENVENIDA -->
     <div id="welcome-screen" class="h-screen w-screen flex flex-col items-center justify-center text-center p-4 bg-transparent transition-opacity duration-1000">
-        <h1 id="main-title" class="text-7xl md:text-9xl font-bold text-white tracking-wider font-display">
-            <!-- Las letras se insertarán aquí con JS -->
-        </h1>
-        <p id="slogan" class="text-lg md:text-xl mt-4 text-gray-300 h-16 md:h-8 flex items-center justify-center"></p>
-        <button id="start-btn" class="mt-8 px-8 py-4 bg-theme-primary text-white font-bold rounded-full text-lg hover:scale-105 transform transition-transform duration-300 shadow-lg shadow-purple-500/50">
-            Comenzar
-        </button>
+        <div class="flex-grow flex flex-col items-center justify-center">
+            <h1 id="main-title" class="text-7xl md:text-9xl font-bold text-white tracking-wider font-display">
+                <!-- Las letras se insertarán aquí con JS -->
+            </h1>
+            <p id="slogan" class="text-lg md:text-xl mt-4 text-gray-300 h-16 md:h-8 flex items-center justify-center"></p>
+            <button id="start-btn" class="mt-8 px-8 py-4 bg-theme-primary text-white font-bold rounded-full text-lg hover:scale-105 transform transition-transform duration-300 shadow-lg shadow-purple-500/50">
+                Comenzar
+            </button>
+        </div>
+        <footer class="pb-4">
+            <a href="https://neptunestudios.netlify.app/" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-400 opacity-75 hover:opacity-100 transition-opacity">
+                Neptune Studios
+            </a>
+        </footer>
     </div>
 
     <!-- CONTENIDO PRINCIPAL DE LA APP -->
     <div id="main-app" class="hidden opacity-0 transition-opacity duration-1000 flex">
         
         <!-- NAVEGACIÓN LATERAL (DOCK EN PC) -->
-        <nav id="main-nav" class="hidden md:flex flex-col items-center w-20 bg-theme-card/10 border-r border-theme p-4 space-y-6">
+        <nav id="main-nav" class="hidden md:flex flex-col items-center w-20 bg-theme-card/10 border-r border-theme p-4">
             <div class="font-display text-2xl font-bold text-theme-primary">O</div>
-            <button data-section="dashboard" class="nav-btn p-3 rounded-lg bg-theme-primary text-white"><i data-feather="home"></i></button>
-            <button data-section="tasks" class="nav-btn p-3 rounded-lg"><i data-feather="check-square"></i></button>
-            <button data-section="calendar" class="nav-btn p-3 rounded-lg"><i data-feather="calendar"></i></button>
-            <button data-section="kaizen" class="nav-btn p-3 rounded-lg"><i data-feather="zap"></i></button>
-            <button data-section="settings" class="nav-btn p-3 rounded-lg"><i data-feather="settings"></i></button>
+            <div class="space-y-6 mt-6">
+                <button data-section="dashboard" class="nav-btn p-3 rounded-lg bg-theme-primary text-white"><i data-feather="home"></i></button>
+                <button data-section="tasks" class="nav-btn p-3 rounded-lg"><i data-feather="check-square"></i></button>
+                <button data-section="calendar" class="nav-btn p-3 rounded-lg"><i data-feather="calendar"></i></button>
+                <button data-section="kaizen" class="nav-btn p-3 rounded-lg"><i data-feather="zap"></i></button>
+                <button data-section="settings" class="nav-btn p-3 rounded-lg"><i data-feather="settings"></i></button>
+            </div>
+            <div class="mt-auto">
+                 <a href="https://neptunestudios.netlify.app/" target="_blank" rel="noopener noreferrer" class="text-xs text-gray-500 opacity-75 hover:opacity-100 transition-opacity">
+                    NS
+                </a>
+            </div>
         </nav>
 
         <!-- NAVEGACIÓN SUPERIOR (MOBILE) -->
@@ -186,13 +200,20 @@
             <div class="font-display text-2xl font-bold text-theme-primary">ORION</div>
             <button id="hamburger-btn" class="p-2"><i data-feather="menu"></i></button>
         </nav>
-        <div id="mobile-menu" class="hidden md:hidden fixed inset-0 bg-theme/90 backdrop-blur-lg z-50 flex flex-col items-center justify-center space-y-8">
+        <div id="mobile-menu" class="hidden md:hidden fixed inset-0 bg-theme/90 backdrop-blur-lg z-50 flex flex-col items-center justify-center">
              <button id="close-mobile-menu" class="absolute top-6 right-6 p-2"><i data-feather="x"></i></button>
-             <button data-section="dashboard" class="mobile-nav-btn text-2xl">Dashboard</button>
-             <button data-section="tasks" class="mobile-nav-btn text-2xl">Tareas</button>
-             <button data-section="calendar" class="mobile-nav-btn text-2xl">Calendario</button>
-             <button data-section="kaizen" class="mobile-nav-btn text-2xl">Kaizen</button>
-             <button data-section="settings" class="mobile-nav-btn text-2xl">Configuración</button>
+             <div class="flex flex-col items-center justify-center flex-grow space-y-8">
+                <button data-section="dashboard" class="mobile-nav-btn text-2xl">Dashboard</button>
+                <button data-section="tasks" class="mobile-nav-btn text-2xl">Tareas</button>
+                <button data-section="calendar" class="mobile-nav-btn text-2xl">Calendario</button>
+                <button data-section="kaizen" class="mobile-nav-btn text-2xl">Kaizen</button>
+                <button data-section="settings" class="mobile-nav-btn text-2xl">Configuración</button>
+             </div>
+             <footer class="pb-8">
+                <a href="https://neptunestudios.netlify.app/" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-400 opacity-75 hover:opacity-100 transition-opacity">
+                    Neptune Studios
+                </a>
+             </footer>
         </div>
 
         <!-- CONTENEDOR DE SECCIONES -->
@@ -365,6 +386,11 @@
                         </div>
                     </div>
                 </div>
+                 <footer class="mt-12 text-center">
+                    <a href="https://neptunestudios.netlify.app/" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-500 opacity-75 hover:opacity-100 transition-opacity">
+                        Neptune Studios
+                    </a>
+                </footer>
             </section>
 
         </main>
@@ -959,6 +985,7 @@
                         } else {
                              setTimeout(() => {
                                 DOM.startBtn.style.opacity = 1;
+                                DOM.welcomeScreen.querySelector('footer').style.opacity = 1;
                              }, 300);
                         }
                     }
