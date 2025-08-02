@@ -127,6 +127,30 @@
             height: 100%;
             z-index: -2; /* Detrás de todo */
         }
+        
+        /* Animaciones de bienvenida */
+        @keyframes star-glow-in {
+            from {
+                opacity: 0;
+                text-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+                transform: translateY(0);
+            }
+        }
+        
+        #welcome-screen h1 span {
+            opacity: 0;
+            animation: star-glow-in 0.8s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        #welcome-screen #slogan, #welcome-screen #start-btn {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body class="transition-colors duration-500 bg-theme">
@@ -135,7 +159,9 @@
 
     <!-- PANTALLA DE BIENVENIDA -->
     <div id="welcome-screen" class="h-screen w-screen flex flex-col items-center justify-center text-center p-4 bg-transparent transition-opacity duration-1000">
-        <h1 class="text-7xl md:text-9xl font-bold text-white tracking-wider font-display">ORION</h1>
+        <h1 id="main-title" class="text-7xl md:text-9xl font-bold text-white tracking-wider font-display">
+            <!-- Las letras se insertarán aquí con JS -->
+        </h1>
         <p id="slogan" class="text-lg md:text-xl mt-4 text-gray-300 h-16 md:h-8 flex items-center justify-center"></p>
         <button id="start-btn" class="mt-8 px-8 py-4 bg-theme-primary text-white font-bold rounded-full text-lg hover:scale-105 transform transition-transform duration-300 shadow-lg shadow-purple-500/50">
             Comenzar
@@ -493,6 +519,7 @@
             mainApp: document.getElementById('main-app'),
             slogan: document.getElementById('slogan'),
             startBtn: document.getElementById('start-btn'),
+            mainTitle: document.getElementById('main-title'),
     
             // Navegación
             navButtons: document.querySelectorAll('.nav-btn'),
@@ -887,7 +914,7 @@
                 this.setupEventListeners();
                 UIManager.applyTheme();
                 this.renderInitialUI();
-                this.initTypewriter();
+                this.initWelcomeAnimation();
                 this.initSortable();
                 this.initStarfield();
             },
@@ -901,23 +928,42 @@
                 feather.replace();
             },
     
-            initTypewriter() {
+            initWelcomeAnimation() {
+                const title = "ORION";
                 const sloganText = "Organiza. Evoluciona. Expande tu universo.";
-                DOM.slogan.innerHTML = ''; 
-                const textSpan = document.createElement('span');
-                const caretSpan = document.createElement('span');
-                caretSpan.className = 'typewriter-caret';
-                DOM.slogan.appendChild(textSpan);
-                DOM.slogan.appendChild(caretSpan);
-                let i = 0;
-                function type() {
-                    if (i < sloganText.length) {
-                        textSpan.textContent += sloganText.charAt(i);
-                        i++;
-                        setTimeout(type, 3500 / sloganText.length);
+                
+                DOM.mainTitle.innerHTML = '';
+                title.split('').forEach((letter, index) => {
+                    const span = document.createElement('span');
+                    span.textContent = letter;
+                    span.style.animationDelay = `${index * 0.1}s`;
+                    DOM.mainTitle.appendChild(span);
+                });
+
+                const totalTitleAnimationTime = title.length * 100 + 800;
+
+                setTimeout(() => {
+                    DOM.slogan.style.opacity = 1;
+                    const textSpan = document.createElement('span');
+                    const caretSpan = document.createElement('span');
+                    caretSpan.className = 'typewriter-caret';
+                    DOM.slogan.appendChild(textSpan);
+                    DOM.slogan.appendChild(caretSpan);
+                    
+                    let i = 0;
+                    function type() {
+                        if (i < sloganText.length) {
+                            textSpan.textContent += sloganText.charAt(i);
+                            i++;
+                            setTimeout(type, 50);
+                        } else {
+                             setTimeout(() => {
+                                DOM.startBtn.style.opacity = 1;
+                             }, 300);
+                        }
                     }
-                }
-                type();
+                    type();
+                }, totalTitleAnimationTime);
             },
     
             initSortable() {
