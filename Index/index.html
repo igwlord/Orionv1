@@ -21,7 +21,7 @@
             --secondary-light: #A5D6A7; /* Verde Seco */
             --accent-light: #FFB74D; /* Naranja Terracota */
             --card-light: #FFFFFF;
-            --border-light: #D1C4E9; /* Lavanda suave */
+            --border-light: #E0D8D3; /* Un beige más oscuro para el borde */
 
             /* Tema Oscuro (Dark) */
             --bg-dark: #110F1A; /* Azul Noche profundo */
@@ -35,11 +35,11 @@
 
         /* Aplicación de temas */
         .light {
-            background-color: var(--bg-light);
+            background-color: transparent; /* Fondo principal ahora es transparente */
             color: var(--text-light);
         }
         .dark {
-            background-color: var(--bg-dark);
+            background-color: transparent; /* Fondo principal ahora es transparente */
             color: var(--text-dark);
         }
 
@@ -62,18 +62,6 @@
         /* Tipografías */
         body { font-family: 'Inter', sans-serif; }
         h1, h2, h3, .font-display { font-family: 'Playfair Display', serif; }
-
-        /* Animación de fondo cósmico */
-        @keyframes cosmic-flow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .cosmic-background {
-            background: linear-gradient(270deg, #110f1a, #3a3356, #c084fc, #f472b6);
-            background-size: 800% 800%;
-            animation: cosmic-flow 20s ease infinite;
-        }
         
         /* Efecto typewriter (solo el cursor) */
         @keyframes blink-caret {
@@ -129,12 +117,24 @@
                 transform: rotate(360deg);
             }
         }
+        
+        /* Estilos para el Canvas del fondo de estrellas */
+        #starfield-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2; /* Detrás de todo */
+        }
     </style>
 </head>
-<body class="bg-theme transition-colors duration-500">
+<body class="transition-colors duration-500 bg-theme">
+    
+    <canvas id="starfield-canvas"></canvas>
 
     <!-- PANTALLA DE BIENVENIDA -->
-    <div id="welcome-screen" class="h-screen w-screen flex flex-col items-center justify-center text-center p-4 cosmic-background transition-opacity duration-1000">
+    <div id="welcome-screen" class="h-screen w-screen flex flex-col items-center justify-center text-center p-4 bg-transparent transition-opacity duration-1000">
         <h1 class="text-7xl md:text-9xl font-bold text-white tracking-wider font-display">ORION</h1>
         <p id="slogan" class="text-lg md:text-xl mt-4 text-gray-300 h-16 md:h-8 flex items-center justify-center"></p>
         <button id="start-btn" class="mt-8 px-8 py-4 bg-theme-primary text-white font-bold rounded-full text-lg hover:scale-105 transform transition-transform duration-300 shadow-lg shadow-purple-500/50">
@@ -170,7 +170,7 @@
         </div>
 
         <!-- CONTENEDOR DE SECCIONES -->
-        <main class="flex-1 p-4 md:p-8 overflow-y-auto h-screen mt-16 md:mt-0 pb-24 md:pb-8">
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto h-screen mt-16 md:mt-0 pb-24 md:pb-8 bg-theme/80 dark:bg-theme/90 backdrop-blur-sm">
             
             <!-- DASHBOARD -->
             <section id="dashboard" class="app-section">
@@ -218,9 +218,9 @@
                 <div class="flex flex-col md:flex-row items-start md:items-center mb-4 gap-4">
                     <div class="relative w-full md:max-w-xs">
                         <i data-feather="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
-                        <input type="text" id="search-tasks-input" placeholder="Buscar tareas..." class="w-full bg-theme-card/50 border border-theme rounded-lg p-2 pl-10 focus:outline-none focus:ring-2 focus:ring-theme-primary">
+                        <input type="text" id="search-tasks-input" placeholder="Buscar tareas..." class="w-full bg-theme-card/50 border border-theme rounded-lg p-2 pl-10 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-400">
                     </div>
-                    <select id="project-filter-select" class="w-full md:w-auto bg-theme-card/50 border border-theme rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary">
+                    <select id="project-filter-select" class="w-full md:w-auto bg-theme-card/50 border border-theme rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-400">
                         <option value="all">Todos los proyectos</option>
                     </select>
                 </div>
@@ -253,14 +253,14 @@
                         <h3 id="month-year-header" class="text-xl font-bold"></h3>
                         <button id="next-month-btn" class="p-2 rounded-full hover:bg-theme-card"><i data-feather="chevron-right"></i></button>
                     </div>
-                    <div id="calendar-grid" class="grid grid-cols-7">
-                        <div class="text-center font-bold text-gray-400 py-2">D</div>
-                        <div class="text-center font-bold text-gray-400 py-2">L</div>
-                        <div class="text-center font-bold text-gray-400 py-2">M</div>
-                        <div class="text-center font-bold text-gray-400 py-2">M</div>
-                        <div class="text-center font-bold text-gray-400 py-2">J</div>
-                        <div class="text-center font-bold text-gray-400 py-2">V</div>
-                        <div class="text-center font-bold text-gray-400 py-2">S</div>
+                    <div id="calendar-grid" class="grid grid-cols-7 border-r border-b border-theme">
+                        <div class="text-center font-bold text-gray-400 py-2 border-t border-l border-theme">D</div>
+                        <div class="text-center font-bold text-gray-400 py-2 border-t border-l border-theme">L</div>
+                        <div class="text-center font-bold text-gray-400 py-2 border-t border-l border-theme">M</div>
+                        <div class="text-center font-bold text-gray-400 py-2 border-t border-l border-theme">M</div>
+                        <div class="text-center font-bold text-gray-400 py-2 border-t border-l border-theme">J</div>
+                        <div class="text-center font-bold text-gray-400 py-2 border-t border-l border-theme">V</div>
+                        <div class="text-center font-bold text-gray-400 py-2 border-t border-l border-theme">S</div>
                     </div>
                 </div>
             </section>
@@ -317,7 +317,7 @@
                     <div class="bg-theme-card p-4 rounded-lg">
                         <h3 class="font-bold mb-3">Perfil de Usuario</h3>
                         <label for="username-input" class="block text-sm text-gray-400">Nombre de usuario</label>
-                        <input type="text" id="username-input" class="w-full bg-theme/50 border border-theme rounded-md p-2 mt-1 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-300">
+                        <input type="text" id="username-input" class="w-full bg-theme/50 border border-theme rounded-md p-2 mt-1 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-400">
                     </div>
                     <!-- Datos -->
                     <div class="bg-theme-card p-4 rounded-lg">
@@ -354,11 +354,11 @@
                     <input type="hidden" id="task-id">
                     <div class="mb-4">
                         <label for="task-name" class="block text-sm font-medium text-gray-400 mb-1">Nombre de la tarea</label>
-                        <input type="text" id="task-name" class="w-full bg-theme/50 border border-theme rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-300" required>
+                        <input type="text" id="task-name" class="w-full bg-theme/50 border border-theme rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-400" required>
                     </div>
                     <div class="mb-4">
                         <label for="task-project" class="block text-sm font-medium text-gray-400 mb-1">Proyecto</label>
-                        <select id="task-project" class="w-full bg-theme/50 border border-theme rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-300">
+                        <select id="task-project" class="w-full bg-theme/50 border border-theme rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-400">
                            <option value="none">Sin proyecto</option>
                         </select>
                     </div>
@@ -372,11 +372,11 @@
                     </div>
                     <div class="mb-4">
                         <label for="task-description" class="block text-sm font-medium text-gray-400 mb-1">Descripción</label>
-                        <textarea id="task-description" rows="3" class="w-full bg-theme/50 border border-theme rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-300"></textarea>
+                        <textarea id="task-description" rows="3" class="w-full bg-theme/50 border border-theme rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-400"></textarea>
                     </div>
                     <div class="mb-6">
                         <label for="task-date" class="block text-sm font-medium text-gray-400 mb-1">Fecha</label>
-                        <input type="date" id="task-date" class="w-full bg-theme/50 border border-theme rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-300">
+                        <input type="date" id="task-date" class="w-full bg-theme/50 border border-theme rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-400">
                     </div>
                     <div class="flex items-center mb-6">
                         <input id="task-calendar-checkbox" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-theme-primary focus:ring-theme-primary">
@@ -397,7 +397,7 @@
                 <form id="project-form">
                     <div class="mb-6">
                         <label for="project-name" class="block text-sm font-medium text-gray-400 mb-1">Nombre del proyecto</label>
-                        <input type="text" id="project-name" class="w-full bg-theme/50 border border-theme rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-300" required>
+                        <input type="text" id="project-name" class="w-full bg-theme/50 border border-theme rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-theme-primary text-gray-800 dark:text-purple-400" required>
                     </div>
                     <div class="flex justify-end space-x-4">
                         <button type="button" id="cancel-project-btn" class="px-4 py-2 rounded-md text-gray-400 hover:bg-gray-700">Cancelar</button>
@@ -458,7 +458,7 @@
 
     <script>
     // =================================================================================
-    // ORION APP - v2.1 (Calendar Revamp)
+    // ORION APP - v2.4 (Unified Background & Fixes)
     // =================================================================================
     document.addEventListener('DOMContentLoaded', () => {
     
@@ -484,6 +484,10 @@
         // B. SELECTORES DEL DOM
         // -----------------------------------------------------------------------------
         const DOM = {
+            // Body
+            body: document.body,
+            // Canvas
+            starfieldCanvas: document.getElementById('starfield-canvas'),
             // Pantallas
             welcomeScreen: document.getElementById('welcome-screen'),
             mainApp: document.getElementById('main-app'),
@@ -596,8 +600,13 @@
             load() {
                 const savedState = localStorage.getItem('orionAppState_v2');
                 if (savedState) {
-                    const parsedState = JSON.parse(savedState);
-                    Object.assign(AppState, parsedState);
+                    try {
+                        const parsedState = JSON.parse(savedState);
+                        Object.assign(AppState, parsedState);
+                    } catch(e) {
+                        console.error("Failed to parse state from localStorage:", e);
+                        localStorage.removeItem('orionAppState_v2'); // Clear corrupted data
+                    }
                 }
                 AppState.currentDate = new Date(); // Siempre resetear a la fecha actual al cargar
             },
@@ -685,7 +694,7 @@
                     cellDate.setDate(cellDate.getDate() + i);
     
                     const dayCell = document.createElement('div');
-                    dayCell.className = 'group relative text-center py-1 cursor-pointer transition-colors aspect-square flex items-center justify-center flex-col';
+                    dayCell.className = 'group relative text-center py-1 cursor-pointer transition-colors aspect-square flex items-center justify-center flex-col border-t border-l border-theme';
                     dayCell.dataset.date = cellDate.toISOString().split('T')[0];
     
                     const dayNumber = document.createElement('span');
@@ -796,10 +805,14 @@
                     html.classList.add('dark');
                     html.classList.remove('light');
                     DOM.themeToggle.checked = true;
+                    DOM.body.classList.add('dark');
+                    DOM.body.classList.remove('light');
                 } else {
                     html.classList.add('light');
                     html.classList.remove('dark');
                     DOM.themeToggle.checked = false;
+                    DOM.body.classList.add('light');
+                    DOM.body.classList.remove('dark');
                 }
             },
     
@@ -876,6 +889,7 @@
                 this.renderInitialUI();
                 this.initTypewriter();
                 this.initSortable();
+                this.initStarfield();
             },
     
             renderInitialUI() {
@@ -925,6 +939,81 @@
                         }
                     });
                 });
+            },
+            
+            initStarfield() {
+                const canvas = DOM.starfieldCanvas;
+                const ctx = canvas.getContext('2d');
+                let stars = [];
+                let animationFrameId;
+                let isPaused = false;
+
+                function resizeCanvas() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    createStars();
+                }
+
+                function createStars() {
+                    stars = [];
+                    const starCount = Math.floor((canvas.width * canvas.height) / 5000); 
+                    for (let i = 0; i < starCount; i++) {
+                        stars.push({
+                            x: Math.random() * canvas.width,
+                            y: Math.random() * canvas.height,
+                            radius: Math.random() * 1.5 + 0.5,
+                            alpha: Math.random() * 0.5 + 0.5,
+                            alphaChange: (Math.random() - 0.5) * 0.01
+                        });
+                    }
+                }
+
+                function drawStars() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Fondo base
+                    const bodyBg = getComputedStyle(document.body).getPropertyValue('background-color');
+                    ctx.fillStyle = bodyBg;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Estrellas
+                    ctx.fillStyle = AppState.user.theme === 'dark' ? 'rgba(224, 224, 224, 0.8)' : 'rgba(74, 74, 74, 0.6)';
+                    
+                    stars.forEach(star => {
+                        ctx.beginPath();
+                        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                        ctx.globalAlpha = star.alpha;
+                        ctx.fill();
+                    });
+                    ctx.globalAlpha = 1;
+                }
+
+                function updateStars() {
+                    stars.forEach(star => {
+                        star.alpha += star.alphaChange;
+                        if (star.alpha <= 0.1 || star.alpha >= 1) {
+                            star.alphaChange *= -1;
+                        }
+                    });
+                }
+
+                function animate() {
+                    if (isPaused) return;
+                    updateStars();
+                    drawStars();
+                    animationFrameId = requestAnimationFrame(animate);
+                }
+                
+                window.addEventListener('resize', resizeCanvas);
+                document.addEventListener('visibilitychange', () => {
+                    isPaused = document.hidden;
+                    if (!isPaused) {
+                        animate();
+                    }
+                });
+
+                resizeCanvas();
+                animate();
             },
     
             // -- Manejadores de eventos --
@@ -1170,8 +1259,10 @@
                 reader.onload = (e) => {
                     try {
                         const importedState = JSON.parse(e.target.result);
-                        if (importedState.user && Array.isArray(importedState.tasks) && Array.isArray(importedState.projects)) {
+                        // Validación más robusta
+                        if (importedState && typeof importedState.user === 'object' && Array.isArray(importedState.tasks) && Array.isArray(importedState.projects) && typeof importedState.filters === 'object') {
                             Object.assign(AppState, importedState);
+                            AppState.currentDate = new Date(); // Resetear siempre la fecha actual
                             DataService.save();
                             this.renderInitialUI();
                             ModalManager.open(DOM.infoModal);
@@ -1185,7 +1276,7 @@
                     } catch (error) {
                         ModalManager.open(DOM.infoModal);
                         DOM.infoModal.title.textContent = 'Error de Archivo';
-                        DOM.infoModal.message.textContent = 'No se pudo leer el archivo JSON.';
+                        DOM.infoModal.message.textContent = `No se pudo leer el archivo JSON. (${error.message})`;
                     }
                 };
                 reader.readAsText(file);
