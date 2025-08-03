@@ -50,38 +50,9 @@ class KeyboardShortcuts {
         this.addShortcut('4', 'Ir a Kaizen', () => this.navigateToSection('kaizen'));
         this.addShortcut('5', 'Ir a Configuración', () => this.navigateToSection('settings'));
 
-        // Acciones rápidas
-        this.addShortcut('n', 'Nueva Tarea', () => this.createNewTask(), { ctrl: true });
-        this.addShortcut('p', 'Nuevo Proyecto', () => this.createNewProject(), { ctrl: true });
-        this.addShortcut('s', 'Guardar/Exportar', () => this.quickSave(), { ctrl: true });
-        this.addShortcut('f', 'Buscar Tareas', () => this.focusSearch(), { ctrl: true });
-
-        // Toggles rápidos
-        this.addShortcut('d', 'Toggle Tema', () => this.toggleTheme(), { ctrl: true });
+        // Acciones básicas
         this.addShortcut('h', 'Mostrar/Ocultar Ayuda', () => this.toggleHelp());
         
-        // Navegación de calendario
-        this.addShortcut('ArrowLeft', 'Mes Anterior', () => this.navigateCalendar('prev'), { 
-            section: 'calendar' 
-        });
-        this.addShortcut('ArrowRight', 'Mes Siguiente', () => this.navigateCalendar('next'), { 
-            section: 'calendar' 
-        });
-        this.addShortcut('t', 'Ir a Hoy', () => this.goToToday(), { 
-            section: 'calendar' 
-        });
-
-        // Acciones de tareas
-        this.addShortcut('j', 'Siguiente Tarea', () => this.navigateTask('down'), { 
-            section: 'tasks' 
-        });
-        this.addShortcut('k', 'Anterior Tarea', () => this.navigateTask('up'), { 
-            section: 'tasks' 
-        });
-        this.addShortcut('Enter', 'Editar Tarea Seleccionada', () => this.editSelectedTask(), { 
-            section: 'tasks' 
-        });
-
         // Escape para cerrar modales
         this.addShortcut('Escape', 'Cerrar Modal/Menú', () => this.closeCurrentModal());
     }

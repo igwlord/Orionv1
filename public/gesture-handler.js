@@ -284,40 +284,14 @@ class GestureHandler {
     // ACCIONES DE GESTOS
     // =================================================================================
     executeSwipeAction(direction, element, data) {
-        const currentSection = this.getCurrentSection();
-        
-        // Swipes globales
+        // Swipes básicos para navegación
         switch (direction) {
             case 'right':
-                if (currentSection === 'tasks') {
-                    this.markTaskAsComplete(element);
-                } else {
-                    this.navigateToPreviousSection();
-                }
+                this.navigateToPreviousSection();
                 break;
                 
             case 'left':
-                if (currentSection === 'tasks') {
-                    this.markTaskAsIncomplete(element);
-                } else {
-                    this.navigateToNextSection();
-                }
-                break;
-                
-            case 'up':
-                if (currentSection === 'dashboard') {
-                    this.showQuickActions();
-                } else {
-                    this.scrollToTop();
-                }
-                break;
-                
-            case 'down':
-                if (currentSection === 'dashboard') {
-                    this.hideQuickActions();
-                } else {
-                    this.showSearch();
-                }
+                this.navigateToNextSection();
                 break;
         }
         
@@ -354,69 +328,6 @@ class GestureHandler {
                 button.click();
             }
         }
-    }
-
-    // =================================================================================
-    // ACCIONES ESPECÍFICAS
-    // =================================================================================
-    markTaskAsComplete(element) {
-        const taskCard = element.closest('.task-card');
-        if (taskCard) {
-            const checkbox = taskCard.querySelector('input[type="checkbox"]');
-            if (checkbox && !checkbox.checked) {
-                checkbox.checked = true;
-                checkbox.dispatchEvent(new Event('change'));
-                this.showActionFeedback('Tarea completada', 'success');
-            }
-        }
-    }
-
-    markTaskAsIncomplete(element) {
-        const taskCard = element.closest('.task-card');
-        if (taskCard) {
-            const checkbox = taskCard.querySelector('input[type="checkbox"]');
-            if (checkbox && checkbox.checked) {
-                checkbox.checked = false;
-                checkbox.dispatchEvent(new Event('change'));
-                this.showActionFeedback('Tarea marcada como pendiente', 'info');
-            }
-        }
-    }
-
-    showQuickActions() {
-        const quickActions = document.getElementById('quick-actions-panel') || this.createQuickActionsPanel();
-        quickActions.classList.remove('hidden');
-        this.showActionFeedback('Panel de acciones rápidas', 'info');
-    }
-
-    hideQuickActions() {
-        const quickActions = document.getElementById('quick-actions-panel');
-        if (quickActions) {
-            quickActions.classList.add('hidden');
-        }
-    }
-
-    showSearch() {
-        const searchInput = document.getElementById('search-tasks-input');
-        if (searchInput) {
-            searchInput.focus();
-            this.showActionFeedback('Búsqueda activada', 'info');
-        }
-    }
-
-    scrollToTop() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        this.showActionFeedback('Ir al inicio', 'info');
-    }
-
-    showOverviewMode() {
-        // Implementar vista general
-        this.showActionFeedback('Modo vista general', 'info');
-    }
-
-    showDetailMode() {
-        // Implementar vista detallada
-        this.showActionFeedback('Modo vista detallada', 'info');
     }
 
     // =================================================================================

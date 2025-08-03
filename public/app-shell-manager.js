@@ -263,6 +263,8 @@ class AppShellManager {
     // =================================================================================
     setupTransitionEffects() {
         // Interceptar navegación para añadir transiciones fluidas
+        // TEMPORALMENTE DESHABILITADO - Causaba problemas con navegación normal
+        /* 
         document.addEventListener('click', (e) => {
             const navButton = e.target.closest('.nav-btn, .mobile-nav-btn');
             if (navButton) {
@@ -271,6 +273,11 @@ class AppShellManager {
                 this.transitionToSection(section, navButton);
             }
         });
+        */
+        
+        if (window.IS_DEV) {
+            console.log('⚠️ Transiciones automáticas deshabilitadas - usando navegación normal');
+        }
     }
 
     async transitionToSection(sectionName, triggerButton) {
@@ -286,7 +293,7 @@ class AppShellManager {
             await this.showShell(sectionName);
             
             // 2. Actualizar navegación
-            this.updateNavigation(triggerButton);
+            this.updateNavigation(triggerButton, sectionName);
             
             // 3. Cargar datos reales en background
             await this.loadSectionData(sectionName);
@@ -311,7 +318,16 @@ class AppShellManager {
         const targetSection = document.getElementById(sectionName);
         const shellContent = this.shellComponents.get(sectionName);
         
-        if (!targetSection || !shellContent) return;
+        if (!targetSection || !shellContent) {
+            if (window.IS_DEV) {
+                console.log(`❌ No se pudo mostrar shell - Section: ${!!targetSection}, Shell: ${!!shellContent}`);
+            }
+            return;
+        }
+
+        if (window.IS_DEV) {
+            console.log(`🔄 Mostrando shell para: ${sectionName}`);
+        }
 
         // Ocultar todas las secciones
         document.querySelectorAll('.app-section').forEach(section => {
@@ -324,6 +340,14 @@ class AppShellManager {
         // Guardar contenido original si no existe
         if (!targetSection.dataset.originalContent) {
             targetSection.dataset.originalContent = targetSection.innerHTML;
+            
+            if (window.IS_DEV) {
+                console.log(`💾 Contenido original guardado para: ${sectionName} (${targetSection.innerHTML.length} chars)`);
+            }
+        } else {
+            if (window.IS_DEV) {
+                console.log(`📄 Contenido original ya existe para: ${sectionName}`);
+            }
         }
         
         // Inyectar shell con animación
@@ -342,7 +366,17 @@ class AppShellManager {
     async hideShell(sectionName) {
         const targetSection = document.getElementById(sectionName);
         
-        if (!targetSection) return;
+        if (!targetSection) {
+            if (window.IS_DEV) {
+                console.log(`❌ No se encontró sección: ${sectionName}`);
+            }
+            return;
+        }
+
+        if (window.IS_DEV) {
+            console.log(`🔄 Ocultando shell para: ${sectionName}`);
+            console.log('Original content exists:', !!targetSection.dataset.originalContent);
+        }
 
         // Restaurar contenido original
         if (targetSection.dataset.originalContent) {
@@ -352,17 +386,111 @@ class AppShellManager {
             if (window.IconUtils) {
                 window.IconUtils.safeFeatherReplace();
             }
+            
+            // Re-inicializar sección específica si es necesario
+            this.reinitializeSection(sectionName);
+            
+            if (window.IS_DEV) {
+                console.log(`✅ Contenido original restaurado para: ${sectionName}`);
+            }
+        } else {
+            if (window.IS_DEV) {
+                console.log(`⚠️ No hay contenido original guardado para: ${sectionName}`);
+            }
+        }
+    }
+    
+    reinitializeSection(sectionName) {
+        // Re-inicializar funcionalidades específicas de cada sección
+        switch (sectionName) {
+            case 'calendar':
+                // Re-renderizar el calendario
+                if (window.UIManager && window.UIManager.renderCalendar) {
+                    setTimeout(() => {
+                        window.UIManager.renderCalendar();
+                    }, 100);
+                }
+                break;
+                
+            case 'tasks':
+                // Re-renderizar tareas si es necesario
+                if (window.UIManager && window.UIManager.renderTasks) {
+                    setTimeout(() => {
+                        window.UIManager.renderTasks();
+                    }, 100);
+                }
+                break;
         }
     }
 
-    updateNavigation(activeButton) {
+    updateNavigation(activeButton, sectionName = null) {
         // Actualizar botones de navegación
         document.querySelectorAll('.nav-btn, .mobile-nav-btn').forEach(btn => {
-            btn.classList.remove('bg-theme-primary', 'text-white');
+            if (btn && btn.classList) {
+                btn.classList.remove('bg-theme-primary', 'text-white');
+            }
         });
         
-        if (activeButton) {
+        // Si no se proporciona activeButton, intentar encontrarlo
+        if (!activeButton || !activeButton.classList) {
+            if (sectionName) {
+                // Buscar por el nombre de sección proporcionado con múltiples intentos
+                const selectors = [
+                    `[data-section="${sectionName}"]`,
+                    `button[data-section="${sectionName}"]`,
+                    `.nav-btn[data-section="${sectionName}"]`,
+                    `.mobile-nav-btn[data-section="${sectionName}"]`
+                ];
+                
+                for (const selector of selectors) {
+                    const element = document.querySelector(selector);
+                    if (element && element.classList && element.tagName) {
+                        activeButton = element;
+                        break;
+                    }
+                }
+                
+                if (window.IS_DEV && (!activeButton || !activeButton.classList)) {
+                    console.log(`🔍 No se encontró botón válido para sección: ${sectionName}`);
+                    console.log('Botones disponibles:', document.querySelectorAll('[data-section]'));
+                }
+            } else {
+                // Buscar por la sección actual basada en el estado visible
+                const visibleSection = document.querySelector('.app-section:not(.hidden)');
+                if (visibleSection && visibleSection.id) {
+                    const sectionId = visibleSection.id;
+                    const selectors = [
+                        `[data-section="${sectionId}"]`,
+                        `button[data-section="${sectionId}"]`,
+                        `.nav-btn[data-section="${sectionId}"]`,
+                        `.mobile-nav-btn[data-section="${sectionId}"]`
+                    ];
+                    
+                    for (const selector of selectors) {
+                        const element = document.querySelector(selector);
+                        if (element && element.classList && element.tagName) {
+                            activeButton = element;
+                            break;
+                        }
+                    }
+                    
+                    if (window.IS_DEV && (!activeButton || !activeButton.classList)) {
+                        console.log(`🔍 No se encontró botón válido para sección visible: ${sectionId}`);
+                    }
+                }
+            }
+        }
+        
+        // Verificar que el botón encontrado es válido antes de usar classList
+        if (activeButton && activeButton.classList && activeButton.tagName) {
             activeButton.classList.add('bg-theme-primary', 'text-white');
+            
+            if (window.IS_DEV) {
+                console.log(`✅ Navegación actualizada para: ${sectionName || 'desconocido'}`);
+            }
+        } else if (window.IS_DEV) {
+            console.log(`❌ No se pudo actualizar navegación - activeButton:`, activeButton);
+            console.log('Tipo de elemento:', typeof activeButton, activeButton?.constructor?.name);
         }
         
         // Cerrar menú móvil si está abierto

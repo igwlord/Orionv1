@@ -106,7 +106,9 @@ class Phase3Coordinator {
             this.navigationButtons = document.querySelectorAll('.nav-button, .navigation-item, [onclick*="showSection"]');
         }
 
+        // INTERCEPTACIÓN DESHABILITADA - Causaba problemas con navegación normal
         // Interceptar clics de navegación para usar App Shell
+        /*
         this.navigationButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 const sectionName = button.dataset.section || this.extractSectionFromElement(button);
@@ -117,9 +119,10 @@ class Phase3Coordinator {
                 }
             });
         });
+        */
 
         if (window.IS_DEV) {
-            console.log(`🔗 App Shell integrado con ${this.navigationButtons.length} botones de navegación`);
+            console.log(`🔗 App Shell encontró ${this.navigationButtons.length} botones de navegación (interceptación deshabilitada)`);
         }
     }
 
