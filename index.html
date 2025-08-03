@@ -9,76 +9,169 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/favicon.svg">
     <meta name="theme-color" content="#6366F1">
-    <!-- DESARROLLO: Para producción, instalar Tailwind CSS como PostCSS plugin -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Resource Hints para optimización -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     
-    <!-- PWA Manager - Carga temprana para Service Worker -->
-    <script src="/pwa-manager.js"></script>
+    <!-- Critical CSS inlined para fastest rendering -->
+    <style>
+        /* Critical path styles - inlined para evitar render-blocking */
+        .skeleton { animation: skeleton-loading 1.2s ease-in-out infinite alternate; }
+        @keyframes skeleton-loading { 0% { opacity: 1; } 100% { opacity: 0.4; } }
+        .transition-fast { transition: all 0.15s ease; }
+        body { font-family: Inter, system-ui, sans-serif; }
+        .bg-theme { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
     
-    <!-- IndexedDB Manager - Sistema de persistencia robusto -->
-    <script src="/indexeddb-manager.js"></script>
+    <!-- Tailwind CSS - Solo en desarrollo, en producción usar build optimizado -->
+    <script src="https://cdn.tailwindcss.com" defer></script>
     
-    <!-- Data Sync Manager - Sincronización inteligente -->
-    <script src="/data-sync-manager.js"></script>
+    <!-- Fonts con display=swap para mejor performance -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
-    <!-- Data Adapter - Bridge entre App y capa de datos -->
-    <script src="/data-adapter.js"></script>
+    <!-- Resource Optimizer - Carga temprana -->
+    <script type="module" src="/src/utils/resource-optimizer.js"></script>
     
-    <!-- App Shell Manager - Instant loading pattern -->
-    <script src="/app-shell-manager.js"></script>
+    <!-- Bundle Manager - Sistema de bundles inteligente -->
+    <script type="module" src="/src/utils/bundle-manager.js"></script>
     
-    <!-- Keyboard Shortcuts - Advanced UX Navigation -->
-    <script src="/keyboard-shortcuts.js"></script>
-    
-    <!-- Gesture Handler - Advanced Mobile UX -->
-    <script src="/gesture-handler.js"></script>
-    
-    <!-- Loading States - Refined Performance UX -->
-    <script src="/loading-states.js"></script>
-    
-    <!-- Phase 3 Coordinator - Integration & orchestration -->
-    <script src="/phase3-coordinator.js"></script>
-    
-    <!-- Lazy loading de recursos no críticos -->
+    <!-- Sistema de carga inteligente de bundles -->
     <script>
         // Definir IS_DEV globalmente para acceso temprano
         window.IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '';
         
-        // Lazy load Feather Icons y SortableJS
-        window.lazyLoadResources = function() {
-            if (!window.feather) {
-                const featherScript = document.createElement('script');
-                featherScript.src = 'https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js';
-                featherScript.onload = () => {
-                    if (window.feather) {
-                        feather.replace();
-                        // Notificar que feather está listo
-                        window.dispatchEvent(new CustomEvent('featherReady'));
-                        if (window.IS_DEV) {
-                            Logger.success('Feather Icons cargado correctamente');
-                        }
-                    }
-                };
-                featherScript.onerror = () => {
-                    Logger.warn('No se pudo cargar Feather Icons');
-                };
-                document.head.appendChild(featherScript);
-            }
-            
-            if (!window.Sortable) {
-                const sortableScript = document.createElement('script');
-                sortableScript.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js';
-                sortableScript.onerror = () => {
-                    Logger.warn('No se pudo cargar SortableJS');
-                };
-                document.head.appendChild(sortableScript);
+        // Sistema de carga optimizada de recursos
+        window.lazyLoadResources = async function() {
+            try {
+                // Cargar solo recursos críticos inicialmente
+                if (window.bundleManager) {
+                    await window.bundleManager.autoLoad();
+                    window.bundleManager.setupIntelligentPreloading();
+                } else {
+                    // Fallback para carga directa en caso de error
+                    console.warn('Bundle manager not available, loading resources directly');
+                    await loadCriticalResourcesFallback();
+                }
+            } catch (error) {
+                console.error('Error loading resources:', error);
+                await loadCriticalResourcesFallback();
             }
         };
+        
+        // Fallback para carga directa (ya no necesario para módulos ES6)
+        async function loadCriticalResourcesFallback() {
+            // Los recursos críticos ya se cargan como módulos ES6 arriba
+            // Solo necesitamos cargar recursos externos aquí si es necesario
+            if (window.IS_DEV) {
+                console.log('📦 Critical ES6 modules already loaded via import statements');
+            }
+        }
+        
+        // Preload de recursos críticos (solo para scripts no-module)
+        function preloadCritical() {
+            const criticalResources = [
+                // Los módulos ES6 se cargan a través de import, no necesitan preload
+                // Solo precargar recursos de terceros o scripts tradicionales
+            ];
+            
+            criticalResources.forEach(href => {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.as = 'script';
+                link.href = href;
+                document.head.appendChild(link);
+            });
+            
+            if (window.IS_DEV) {
+                console.log('📦 Module preload configured for non-ES6 resources');
+            }
+        }
+        
+        // Ejecutar preload inmediatamente
+        preloadCritical();
+        
+        // Sistema de carga optimizada con bundles (reemplaza la función anterior)
+        window.lazyLoadResources = async function() {
+            try {
+                // Si ResourceOptimizer está disponible, usar carga inteligente
+                if (window.resourceOptimizer) {
+                    // Cargar Feather Icons con prioridad media
+                    await window.resourceOptimizer.lazyLoad(
+                        'https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js',
+                        { priority: 'medium', defer: true }
+                    );
+                    
+                    // Cargar SortableJS con prioridad baja
+                    await window.resourceOptimizer.lazyLoad(
+                        'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js',
+                        { priority: 'low', defer: true }
+                    );
+                    
+                    // Inicializar Feather después de cargar
+                    if (window.feather) {
+                        feather.replace();
+                        window.dispatchEvent(new CustomEvent('featherReady'));
+                        if (window.IS_DEV) {
+                            console.log('✅ External resources loaded via ResourceOptimizer');
+                        }
+                    }
+                    
+                } else {
+                    // Fallback a carga tradicional
+                    await loadExternalResourcesFallback();
+                }
+                
+            } catch (error) {
+                console.warn('Error in optimized loading, falling back:', error);
+                await loadExternalResourcesFallback();
+            }
+        };
+        
+        // Fallback para recursos externos
+        async function loadExternalResourcesFallback() {
+            const resources = [
+                {
+                    url: 'https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js',
+                    callback: () => {
+                        if (window.feather) {
+                            feather.replace();
+                            window.dispatchEvent(new CustomEvent('featherReady'));
+                        }
+                    }
+                },
+                {
+                    url: 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js',
+                    callback: null
+                }
+            ];
+            
+            for (const resource of resources) {
+                try {
+                    await loadExternalScript(resource.url, resource.callback);
+                } catch (error) {
+                    console.warn(`Failed to load ${resource.url}:`, error);
+                }
+            }
+        }
+        
+        // Utilidad para cargar scripts externos
+        function loadExternalScript(src, callback) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.defer = true;
+                script.onload = () => {
+                    if (callback) callback();
+                    resolve();
+                };
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
         
         // Cargar cuando se transite a la app principal
         window.addEventListener('DOMContentLoaded', () => {
@@ -98,7 +191,7 @@
             --accent-light: #FFB74D; /* Naranja Terracota */
             --card-light: #FFFFFF;
             --border-light: #E0D8D3; /* Un beige más oscuro para el borde */
-
+            
             /* Tema Oscuro (Dark) */
             --bg-dark: #110F1A; /* Azul Noche profundo */
             --text-dark: #E0E0E0;
@@ -110,7 +203,15 @@
             --border-dark: #3A3356;
         }
 
-        /* Aplicación de temas */
+        /* ✨ PREVENCIÓN DE FLASH DE PANTALLA DE BIENVENIDA */
+        .auth-loading #welcome-screen {
+            display: none !important;
+        }
+        
+        .auth-loading #main-app {
+            display: flex !important;
+            opacity: 1 !important;
+        }        /* Aplicación de temas */
         .light {
             background-color: transparent; /* Fondo principal ahora es transparente */
             color: var(--text-light);
@@ -519,18 +620,65 @@
                     </select>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Columnas Kanban -->
-                    <div class="kanban-column bg-theme-card/50 p-4 rounded-lg">
+                    <!-- Columnas Kanban - Layout responsive -->
+                    
+                    <!-- Desktop: Columnas tradicionales -->
+                    <div class="hidden md:block kanban-column bg-theme-card/50 p-4 rounded-lg">
                         <h3 class="font-bold mb-4 text-yellow-400">🟡 Por Hacer</h3>
                         <div id="todo-column" class="min-h-[200px] space-y-4"></div>
                     </div>
-                    <div class="kanban-column bg-theme-card/50 p-4 rounded-lg">
+                    <div class="hidden md:block kanban-column bg-theme-card/50 p-4 rounded-lg">
                         <h3 class="font-bold mb-4 text-blue-400">🔵 En Progreso</h3>
                         <div id="doing-column" class="min-h-[200px] space-y-4"></div>
                     </div>
-                    <div class="kanban-column bg-theme-card/50 p-4 rounded-lg">
+                    <div class="hidden md:block kanban-column bg-theme-card/50 p-4 rounded-lg">
                         <h3 class="font-bold mb-4 text-green-400">✅ Completadas</h3>
                         <div id="completed-column" class="min-h-[200px] space-y-4"></div>
+                    </div>
+                    
+                    <!-- Mobile: Modales plegables -->
+                    <div class="md:hidden col-span-full space-y-4">
+                        <!-- Modal Por Hacer -->
+                        <div class="mobile-task-modal bg-theme-card/50 rounded-lg overflow-hidden">
+                            <div class="mobile-task-header flex justify-between items-center p-4 cursor-pointer" data-section="todo">
+                                <h3 class="font-bold text-yellow-400 flex items-center">
+                                    🟡 Por Hacer 
+                                    <span class="ml-2 text-sm bg-yellow-400/20 text-yellow-400 px-2 py-1 rounded-full" id="todo-count">0</span>
+                                </h3>
+                                <i data-feather="chevron-down" class="mobile-chevron transition-transform duration-200"></i>
+                            </div>
+                            <div class="mobile-task-content hidden">
+                                <div id="mobile-todo-column" class="p-4 pt-0 space-y-3"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Modal En Progreso -->
+                        <div class="mobile-task-modal bg-theme-card/50 rounded-lg overflow-hidden">
+                            <div class="mobile-task-header flex justify-between items-center p-4 cursor-pointer" data-section="doing">
+                                <h3 class="font-bold text-blue-400 flex items-center">
+                                    🔵 En Progreso 
+                                    <span class="ml-2 text-sm bg-blue-400/20 text-blue-400 px-2 py-1 rounded-full" id="doing-count">0</span>
+                                </h3>
+                                <i data-feather="chevron-down" class="mobile-chevron transition-transform duration-200"></i>
+                            </div>
+                            <div class="mobile-task-content hidden">
+                                <div id="mobile-doing-column" class="p-4 pt-0 space-y-3"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Modal Completadas -->
+                        <div class="mobile-task-modal bg-theme-card/50 rounded-lg overflow-hidden">
+                            <div class="mobile-task-header flex justify-between items-center p-4 cursor-pointer" data-section="completed">
+                                <h3 class="font-bold text-green-400 flex items-center">
+                                    ✅ Completadas 
+                                    <span class="ml-2 text-sm bg-green-400/20 text-green-400 px-2 py-1 rounded-full" id="completed-count">0</span>
+                                </h3>
+                                <i data-feather="chevron-down" class="mobile-chevron transition-transform duration-200"></i>
+                            </div>
+                            <div class="mobile-task-content hidden">
+                                <div id="mobile-completed-column" class="p-4 pt-0 space-y-3"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -721,6 +869,50 @@
             </div>
         </div>
         
+        <!-- Modal de Acciones para Mobile (3 puntos) -->
+        <div id="mobile-task-actions-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center p-4">
+            <div class="bg-theme-card rounded-t-xl shadow-2xl w-full max-w-sm transform transition-all translate-y-full">
+                <div class="p-4">
+                    <div class="w-12 h-1 bg-gray-400 rounded-full mx-auto mb-4"></div>
+                    <h3 class="text-lg font-medium mb-4 text-center">Acciones de Tarea</h3>
+                    <div class="space-y-2">
+                        <button id="mobile-edit-task-btn" class="w-full flex items-center px-4 py-3 text-left hover:bg-theme/50 rounded-lg transition-colors">
+                            <i data-feather="edit-2" class="w-5 h-5 mr-3 text-blue-400"></i>
+                            <span>Editar Tarea</span>
+                        </button>
+                        <button id="mobile-delete-task-btn" class="w-full flex items-center px-4 py-3 text-left hover:bg-theme/50 rounded-lg transition-colors">
+                            <i data-feather="trash-2" class="w-5 h-5 mr-3 text-red-400"></i>
+                            <span>Eliminar Tarea</span>
+                        </button>
+                        <button id="mobile-move-task-btn" class="w-full flex items-center px-4 py-3 text-left hover:bg-theme/50 rounded-lg transition-colors">
+                            <i data-feather="move" class="w-5 h-5 mr-3 text-purple-400"></i>
+                            <span>Mover a...</span>
+                            <i data-feather="chevron-right" class="w-4 h-4 ml-auto text-gray-400"></i>
+                        </button>
+                    </div>
+                    <button id="mobile-actions-cancel-btn" class="w-full mt-4 py-3 bg-gray-600 text-white rounded-lg font-medium">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal de Movimiento de Tareas para Mobile -->
+        <div id="mobile-move-task-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center p-4">
+            <div class="bg-theme-card rounded-t-xl shadow-2xl w-full max-w-sm transform transition-all translate-y-full">
+                <div class="p-4">
+                    <div class="w-12 h-1 bg-gray-400 rounded-full mx-auto mb-4"></div>
+                    <h3 class="text-lg font-medium mb-4 text-center">Mover Tarea a...</h3>
+                    <div id="move-options-container" class="space-y-2">
+                        <!-- Las opciones se generan dinámicamente -->
+                    </div>
+                    <button id="mobile-move-cancel-btn" class="w-full mt-4 py-3 bg-gray-600 text-white rounded-lg font-medium">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
         <!-- Modal de Confirmación -->
         <div id="confirm-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-theme-card rounded-lg shadow-2xl p-8 w-full max-w-sm text-center transform transition-all opacity-0 -translate-y-10" role="alertdialog" aria-modal="true">
@@ -757,8 +949,12 @@
 
 
     <script type="module">
-        // Importar sistema de logs optimizado
+        // Importar sistema de logs optimizado y hacer disponible globalmente
         import './src/utils/logger.js';
+        
+        // Importar sistemas de optimización (Fase 5)
+        import './src/utils/resource-optimizer.js';
+        import './src/utils/bundle-manager.js';
         
         // Importar módulos de Firebase y autenticación
         import { authManager } from './src/auth.js';
@@ -767,6 +963,23 @@
         // Hacer disponibles globalmente para el script principal
         window.authManager = authManager;
         window.dataManager = dataManager;
+        
+        // Asegurar que Logger esté disponible globalmente
+        if (!window.Logger) {
+            console.warn('Logger no disponible, creando fallback');
+            window.Logger = {
+                success: console.log.bind(console, '✅'),
+                error: console.error.bind(console, '❌'),
+                warn: console.warn.bind(console, '⚠️'),
+                info: console.log.bind(console, 'ℹ️'),
+                debug: console.log.bind(console, '🔍'),
+                perf: console.log.bind(console, '⚡'),
+                pwa: console.log.bind(console, '📱'),
+                firebase: console.log.bind(console, '🔥'),
+                db: console.log.bind(console, '🗄️'),
+                nav: console.log.bind(console, '🧭')
+            };
+        }
     </script>
 
     <script>
@@ -1158,6 +1371,7 @@
             },
     
             renderTasks() {
+                // Limpiar columnas desktop
                 DOM.todoColumn.innerHTML = '';
                 DOM.doingColumn.innerHTML = '';
                 DOM.completedColumn.innerHTML = '';
@@ -1174,6 +1388,9 @@
                     doing: DOM.doingColumn,
                     completed: DOM.completedColumn,
                 };
+
+                // Contadores para mobile
+                const counters = { todo: 0, doing: 0, completed: 0 };
     
                 if (AppState.tasks.length === 0) {
                     DOM.todoColumn.appendChild(this.createEmptyStateCard("¡Crea una tarea para empezar!"));
@@ -1190,6 +1407,7 @@
                         // Determinar status basado en el campo completed
                         let status = task.completed ? 'completed' : (task.status || 'todo');
                         columns[status]?.appendChild(taskCard);
+                        counters[status]++;
                     });
     
                     Object.entries(columns).forEach(([status, col]) => {
@@ -1199,7 +1417,84 @@
                     });
                 }
 
+                // Actualizar contadores mobile
+                this.updateMobileTaskCounters(counters);
+
+                // Renderizar tareas en mobile también
+                this.renderMobileTasks(filteredTasks);
+
                 IconUtils.safeFeatherReplace();
+            },
+
+            updateMobileTaskCounters(counters) {
+                const todoCount = document.getElementById('todo-count');
+                const doingCount = document.getElementById('doing-count');
+                const completedCount = document.getElementById('completed-count');
+
+                if (todoCount) todoCount.textContent = counters.todo;
+                if (doingCount) doingCount.textContent = counters.doing;
+                if (completedCount) completedCount.textContent = counters.completed;
+            },
+
+            renderMobileTasks(filteredTasks) {
+                const mobileContainers = {
+                    todo: document.getElementById('mobile-todo-column'),
+                    doing: document.getElementById('mobile-doing-column'),
+                    completed: document.getElementById('mobile-completed-column')
+                };
+
+                // Limpiar contenedores mobile
+                Object.values(mobileContainers).forEach(container => {
+                    if (container) container.innerHTML = '';
+                });
+
+                if (filteredTasks.length === 0) return;
+
+                filteredTasks.forEach(task => {
+                    let status = task.completed ? 'completed' : (task.status || 'todo');
+                    const container = mobileContainers[status];
+                    
+                    if (container) {
+                        const mobileTaskCard = this.createMobileTaskCard(task);
+                        container.appendChild(mobileTaskCard);
+                    }
+                });
+            },
+
+            createMobileTaskCard(task) {
+                const card = document.createElement('div');
+                card.className = 'bg-theme-card p-3 rounded-lg shadow-sm border-l-4 mb-2';
+                card.dataset.id = task.id;
+                
+                const priorityStyles = {
+                    low: { icon: 'chevrons-down', color: 'border-green-500', text: 'text-green-500' },
+                    medium: { icon: 'minus', color: 'border-yellow-500', text: 'text-yellow-500' },
+                    high: { icon: 'chevrons-up', color: 'border-red-500', text: 'text-red-500' }
+                };
+                const style = priorityStyles[task.priority] || priorityStyles.medium;
+                card.classList.add(style.color);
+    
+                const projectName = AppState.projects.find(p => p.id === task.project || p.name === task.project)?.name || task.project;
+    
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-2">
+                            <p class="font-bold text-sm">${task.title}</p>
+                            ${task.description ? `<p class="text-xs text-gray-400 mt-1">${task.description}</p>` : ''}
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i data-feather="${style.icon}" class="w-4 h-4 ${style.text}"></i>
+                            <button class="mobile-task-menu-btn text-gray-400 hover:text-white p-1" data-task-id="${task.id}">
+                                <i data-feather="more-vertical" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-2 text-xs">
+                        ${projectName ? `<span class="bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full">${projectName}</span>` : '<span></span>'}
+                        ${task.dueDate ? `<span class="text-gray-500 flex items-center"><i data-feather="calendar" class="w-3 h-3 mr-1"></i> ${new Date(task.dueDate).toLocaleDateString()}</span>` : ''}
+                    </div>
+                `;
+                return card;
             },
     
             renderCalendar() {
@@ -1533,6 +1828,9 @@
         // -----------------------------------------------------------------------------
         const App = {
             init() {
+                // ✨ VERIFICACIÓN TEMPRANA DE AUTENTICACIÓN
+                this.checkExistingAuth();
+                
                 // Cargar recursos críticos primero
                 window.lazyLoadResources();
                 
@@ -1540,13 +1838,100 @@
                 this.setupEventListeners();
                 UIManager.applyTheme();
                 this.renderInitialUI();
-                this.initWelcomeAnimation();
+                
+                // Solo mostrar animación de bienvenida si no está autenticado
+                if (!this.isUserAuthenticated()) {
+                    this.initWelcomeAnimation();
+                }
                 
                 // Carga diferida de componentes pesados
                 ComponentLoader.loadStarfield();
                 setTimeout(() => ComponentLoader.loadSortable(), 1000);
                 
                 this.updateNotificationIndicator();
+            },
+
+            // ✨ NUEVO: Verificar autenticación existente
+            checkExistingAuth() {
+                // Verificar si hay datos de usuario persistidos
+                const savedState = localStorage.getItem('orionAppState_v2');
+                
+                if (savedState) {
+                    try {
+                        const parsedState = JSON.parse(savedState);
+                        
+                        // Si hay usuario autenticado, saltar la pantalla de bienvenida
+                        if (parsedState.user && (parsedState.user.uid || parsedState.user.isGuest)) {
+                            console.log('🔄 Usuario previamente autenticado, saltando bienvenida...');
+                            
+                            // Aplicar clase CSS para ocultar bienvenida
+                            document.body.classList.add('auth-loading');
+                            
+                            // Cargar estado y continuar
+                            Object.assign(AppState, parsedState);
+                            
+                            // Simular transición a app si hay usuario válido
+                            if (parsedState.user.uid || parsedState.user.isGuest) {
+                                setTimeout(() => {
+                                    this.silentTransitionToApp(parsedState.user);
+                                }, 50); // Reducido para ser más rápido
+                            }
+                            
+                            return true; // Usuario autenticado
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Error verificando autenticación previa:', error);
+                    }
+                }
+                
+                return false; // No autenticado
+            },
+
+            // ✨ NUEVO: Verificar si usuario está autenticado
+            isUserAuthenticated() {
+                return AppState.user && (AppState.user.uid || AppState.user.isGuest);
+            },
+
+            // ✨ NUEVO: Transición silenciosa sin animaciones
+            async silentTransitionToApp(user) {
+                try {
+                    // Actualizar información del usuario
+                    AppState.user.name = user.displayName || user.name || user.email || 'Usuario';
+                    DOM.userName.textContent = AppState.user.name;
+                    
+                    // Actualizar estado de autenticación
+                    AppState.user.isGuest = user.isGuest || false;
+                    AppState.user.uid = user.uid;
+
+                    // Inicializar sistema de almacenamiento
+                    if (window.dataManager) {
+                        await window.dataManager.initialize();
+                    }
+
+                    // Configurar listeners
+                    this.setupRealtimeListeners();
+                    this.setupConnectionListeners();
+                    this.updateConnectionStatus();
+
+                    // Cargar y renderizar datos
+                    await DataService.load();
+                    UIManager.renderDashboard();
+                    UIManager.renderTasks();
+                    UIManager.renderCalendar();
+                    
+                    // ✨ Limpiar clase de carga una vez completado
+                    document.body.classList.remove('auth-loading');
+                    
+                    if (window.IS_DEV) {
+                        console.log('✅ Transición silenciosa completada');
+                    }
+                } catch (error) {
+                    console.error('❌ Error en transición silenciosa:', error);
+                    // En caso de error, mostrar pantalla de bienvenida
+                    document.body.classList.remove('auth-loading');
+                    DOM.welcomeScreen.style.display = 'flex';
+                    DOM.mainApp.classList.add('hidden');
+                }
             },
     
             renderInitialUI() {
@@ -1791,13 +2176,87 @@
                 document.getElementById('tasks').addEventListener('click', (e) => {
                     const editBtn = e.target.closest('.edit-task-btn');
                     const deleteBtn = e.target.closest('.delete-task-btn');
+                    const mobileMenuBtn = e.target.closest('.mobile-task-menu-btn');
+                    const mobileHeaderBtn = e.target.closest('.mobile-task-header');
+                    
                     if (editBtn) this.openTaskModal(editBtn.closest('.task-card').dataset.id);
                     if (deleteBtn) this.handleDeleteTask(deleteBtn.closest('.task-card').dataset.id);
+                    if (mobileMenuBtn) {
+                        const taskId = mobileMenuBtn.dataset.taskId;
+                        this.openMobileTaskActionsModal(taskId);
+                    }
+                    if (mobileHeaderBtn) {
+                        this.toggleMobileSection(mobileHeaderBtn.dataset.section);
+                    }
                 });
                 DOM.projectSummaryList.addEventListener('click', (e) => {
                     const deleteBtn = e.target.closest('.delete-project-btn');
                     if (deleteBtn) this.handleDeleteProject(deleteBtn.dataset.projectId);
                 });
+
+                // Mobile Task Actions Modal
+                const mobileActionsModal = document.getElementById('mobile-task-actions-modal');
+                const mobileEditBtn = document.getElementById('mobile-edit-task-btn');
+                const mobileDeleteBtn = document.getElementById('mobile-delete-task-btn');
+                const mobileMoveBtn = document.getElementById('mobile-move-task-btn');
+                const mobileCancelBtn = document.getElementById('mobile-actions-cancel-btn');
+
+                if (mobileEditBtn) {
+                    mobileEditBtn.addEventListener('click', () => {
+                        const taskId = mobileActionsModal.dataset.currentTaskId;
+                        this.closeMobileTaskActionsModal();
+                        this.openTaskModal(taskId);
+                    });
+                }
+
+                if (mobileDeleteBtn) {
+                    mobileDeleteBtn.addEventListener('click', () => {
+                        const taskId = mobileActionsModal.dataset.currentTaskId;
+                        this.closeMobileTaskActionsModal();
+                        this.handleDeleteTask(taskId);
+                    });
+                }
+
+                if (mobileMoveBtn) {
+                    mobileMoveBtn.addEventListener('click', () => {
+                        const taskId = mobileActionsModal.dataset.currentTaskId;
+                        this.openMoveTaskModal(taskId);
+                    });
+                }
+
+                if (mobileCancelBtn) {
+                    mobileCancelBtn.addEventListener('click', () => {
+                        this.closeMobileTaskActionsModal();
+                    });
+                }
+
+                // Mobile Move Task Modal
+                const mobileMoveModal = document.getElementById('mobile-move-task-modal');
+                const moveOptionsContainer = document.getElementById('move-options-container');
+                const mobileMoveCancelBtn = document.getElementById('mobile-move-cancel-btn');
+
+                if (mobileMoveCancelBtn) {
+                    mobileMoveCancelBtn.addEventListener('click', () => {
+                        this.closeMoveTaskModal();
+                    });
+                }
+
+                // Close mobile modals on backdrop click
+                if (mobileActionsModal) {
+                    mobileActionsModal.addEventListener('click', (e) => {
+                        if (e.target === mobileActionsModal) {
+                            this.closeMobileTaskActionsModal();
+                        }
+                    });
+                }
+
+                if (mobileMoveModal) {
+                    mobileMoveModal.addEventListener('click', (e) => {
+                        if (e.target === mobileMoveModal) {
+                            this.closeMoveTaskModal();
+                        }
+                    });
+                }
     
                 // Filtros
                 DOM.searchTasksInput.addEventListener('input', (e) => {
@@ -1990,6 +2449,187 @@
                     this.updateNotificationIndicator();
                     ModalManager.close(DOM.confirmModal);
                 }, { once: true });
+            },
+
+            // Funciones para Mobile Task Management
+            openMobileTaskActionsModal(taskId) {
+                const modal = document.getElementById('mobile-task-actions-modal');
+                if (!modal) return;
+
+                modal.dataset.currentTaskId = taskId;
+                modal.classList.remove('hidden');
+                
+                // Animar la entrada del modal
+                setTimeout(() => {
+                    const modalContent = modal.querySelector('div > div');
+                    if (modalContent) {
+                        modalContent.style.transform = 'translateY(0)';
+                    }
+                }, 10);
+            },
+
+            closeMobileTaskActionsModal() {
+                const modal = document.getElementById('mobile-task-actions-modal');
+                if (!modal) return;
+
+                const modalContent = modal.querySelector('div > div');
+                if (modalContent) {
+                    modalContent.style.transform = 'translateY(100%)';
+                }
+
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    delete modal.dataset.currentTaskId;
+                }, 200);
+            },
+
+            toggleMobileSection(section) {
+                const header = document.querySelector(`[data-section="${section}"]`);
+                const content = header?.parentElement.querySelector('.mobile-task-content');
+                const chevron = header?.querySelector('.mobile-chevron');
+                
+                if (!content || !chevron) return;
+
+                const isExpanded = !content.classList.contains('hidden');
+                
+                if (isExpanded) {
+                    // Collapse
+                    content.classList.add('hidden');
+                    chevron.style.transform = 'rotate(0deg)';
+                } else {
+                    // Expand
+                    content.classList.remove('hidden');
+                    chevron.style.transform = 'rotate(180deg)';
+                }
+            },
+
+            openMoveTaskModal(taskId) {
+                const task = AppState.tasks.find(t => t.id === taskId);
+                if (!task) return;
+
+                const currentStatus = task.completed ? 'completed' : (task.status || 'todo');
+                const modal = document.getElementById('mobile-move-task-modal');
+                const container = document.getElementById('move-options-container');
+                
+                if (!modal || !container) return;
+
+                // Generar opciones dinámicamente
+                const statusOptions = {
+                    todo: { name: 'Por Hacer', icon: 'circle', color: 'text-blue-400', bgColor: 'hover:bg-blue-400/10' },
+                    doing: { name: 'En Progreso', icon: 'play-circle', color: 'text-yellow-400', bgColor: 'hover:bg-yellow-400/10' },
+                    completed: { name: 'Completado', icon: 'check-circle', color: 'text-green-400', bgColor: 'hover:bg-green-400/10' }
+                };
+
+                // Limpiar opciones anteriores
+                container.innerHTML = '';
+
+                // Agregar solo las opciones disponibles (excluir estado actual)
+                Object.entries(statusOptions).forEach(([status, config]) => {
+                    if (status !== currentStatus) {
+                        const button = document.createElement('button');
+                        button.className = `w-full flex items-center px-4 py-3 text-left ${config.bgColor} rounded-lg transition-colors`;
+                        button.innerHTML = `
+                            <i data-feather="${config.icon}" class="w-5 h-5 mr-3 ${config.color}"></i>
+                            <span>${config.name}</span>
+                        `;
+                        button.addEventListener('click', () => {
+                            this.moveTaskToStatus(taskId, status);
+                        });
+                        container.appendChild(button);
+                    }
+                });
+
+                // Mostrar modal
+                modal.dataset.currentTaskId = taskId;
+                modal.classList.remove('hidden');
+                
+                // Animar entrada
+                setTimeout(() => {
+                    const modalContent = modal.querySelector('div > div');
+                    if (modalContent) {
+                        modalContent.style.transform = 'translateY(0)';
+                    }
+                }, 10);
+
+                // Actualizar iconos
+                IconUtils.safeFeatherReplace();
+            },
+
+            closeMoveTaskModal() {
+                const modal = document.getElementById('mobile-move-task-modal');
+                if (!modal) return;
+
+                const modalContent = modal.querySelector('div > div');
+                if (modalContent) {
+                    modalContent.style.transform = 'translateY(100%)';
+                }
+
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    delete modal.dataset.currentTaskId;
+                }, 200);
+            },
+
+            async moveTaskToStatus(taskId, newStatus) {
+                const task = AppState.tasks.find(t => t.id === taskId);
+                if (!task) return;
+
+                // Actualizar estado de la tarea
+                if (newStatus === 'completed') {
+                    task.completed = true;
+                    task.status = 'completed';
+                } else {
+                    task.completed = false;
+                    task.status = newStatus;
+                }
+
+                // Guardar en base de datos
+                await window.dataManager.saveData('tasks', taskId, task);
+
+                // Cerrar modales
+                this.closeMoveTaskModal();
+                this.closeMobileTaskActionsModal();
+
+                // Actualizar UI
+                UIManager.renderTasks();
+                UIManager.renderDashboard();
+                UIManager.renderProjectSummary();
+                UIManager.renderCalendar();
+                this.updateNotificationIndicator();
+
+                // Mostrar notificación
+                const statusNames = {
+                    todo: 'Por Hacer',
+                    doing: 'En Progreso', 
+                    completed: 'Completado'
+                };
+                this.showNotification(`Tarea movida a ${statusNames[newStatus]}`, 'success');
+            },
+
+            duplicateTask(taskId) {
+                const originalTask = AppState.tasks.find(t => t.id === taskId);
+                if (!originalTask) return;
+
+                const duplicatedTask = {
+                    ...originalTask,
+                    id: Utils.generateId(),
+                    title: `${originalTask.title} (Copia)`,
+                    created: new Date().toISOString()
+                };
+
+                AppState.tasks.push(duplicatedTask);
+                
+                // Guardar en base de datos
+                window.dataManager.saveData('tasks', duplicatedTask.id, duplicatedTask);
+                
+                // Actualizar UI
+                UIManager.renderTasks();
+                UIManager.renderDashboard();
+                UIManager.renderProjectSummary();
+                UIManager.renderCalendar();
+                this.updateNotificationIndicator();
+
+                this.showNotification('Tarea duplicada exitosamente', 'success');
             },
     
             handleProjectFormSubmit(e) {
@@ -2477,16 +3117,43 @@
                 };
             },
 
-            // FASE 5: Preparar para escalabilidad y PWA
-            prepareForScaling() {
-                // Implementar bases para PWA
-                this.setupPWASupport();
-                
-                // Error recovery
-                ErrorHandler.reset();
-                
-                if (IS_DEV) {
-                    Logger.perf('Aplicación optimizada y lista para escalar');
+            // FASE 5: Preparar para escalabilidad y PWA completa
+            async prepareForScaling() {
+                try {
+                    // 1. Configurar bundle optimization
+                    if (window.bundleManager) {
+                        await window.bundleManager.autoLoad();
+                        window.bundleManager.setupIntelligentPreloading();
+                    }
+                    
+                    // 2. Implementar bases para PWA optimizada
+                    this.setupPWASupport();
+                    
+                    // 3. Resource optimization
+                    if (window.resourceOptimizer) {
+                        window.resourceOptimizer.optimizeAssets();
+                    }
+                    
+                    // 4. Error recovery
+                    ErrorHandler.reset();
+                    
+                    if (IS_DEV) {
+                        Logger.success('Aplicación optimizada con Fase 5 - Bundle optimization');
+                        
+                        // Reportar métricas en desarrollo
+                        setTimeout(() => {
+                            if (window.resourceOptimizer) {
+                                window.resourceOptimizer.reportMetrics();
+                            }
+                            if (window.bundleManager) {
+                                const stats = window.bundleManager.getStats();
+                                Logger.debug('Bundle stats:', stats);
+                            }
+                        }, 5000);
+                    }
+                    
+                } catch (error) {
+                    Logger.error('Error en Fase 5 optimization:', error);
                 }
             },
 

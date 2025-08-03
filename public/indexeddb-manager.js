@@ -21,12 +21,29 @@ class IndexedDBManager {
                 
                 request.onerror = () => {
                     console.error('❌ Error abriendo IndexedDB:', request.error);
+                    this.isReady = false;
                     reject(request.error);
                 };
                 
                 request.onsuccess = () => {
                     this.db = request.result;
                     this.isReady = true;
+                    
+                    // Detectar cuando la BD se cierra inesperadamente
+                    this.db.onclose = () => {
+                        console.warn('⚠️ IndexedDB se cerró inesperadamente');
+                        this.isReady = false;
+                        this.db = null;
+                    };
+                    
+                    // Detectar errores de versión
+                    this.db.onversionchange = () => {
+                        console.warn('⚠️ Cambio de versión de IndexedDB detectado');
+                        this.db.close();
+                        this.isReady = false;
+                        this.db = null;
+                    };
+                    
                     if (window.IS_DEV) {
                         console.log('✅ IndexedDB iniciado correctamente');
                     }
@@ -95,68 +112,104 @@ class IndexedDBManager {
     // =================================================================================
     async get(storeName, key) {
         await this.ensureReady();
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readonly');
-            const store = transaction.objectStore(storeName);
-            const request = store.get(key);
-            
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+        return this.executeWithRetry(async () => {
+            return new Promise((resolve, reject) => {
+                try {
+                    const transaction = this.db.transaction([storeName], 'readonly');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.get(key);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                    transaction.onerror = () => reject(transaction.error);
+                } catch (error) {
+                    reject(error);
+                }
+            });
         });
     }
 
     async getAll(storeName, indexName = null, indexValue = null) {
         await this.ensureReady();
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readonly');
-            const store = transaction.objectStore(storeName);
+        return this.executeWithRetry(async () => {
+            return new Promise((resolve, reject) => {
+                try {
+                    const transaction = this.db.transaction([storeName], 'readonly');
+                    const store = transaction.objectStore(storeName);
+                    
+                    let request;
+                    if (indexName && indexValue !== null) {
+                        const index = store.index(indexName);
+                        request = index.getAll(indexValue);
+                    } else {
+                        request = store.getAll();
+                    }
             
-            let request;
-            if (indexName && indexValue !== null) {
-                const index = store.index(indexName);
-                request = index.getAll(indexValue);
-            } else {
-                request = store.getAll();
-            }
-            
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                    transaction.onerror = () => reject(transaction.error);
+                } catch (error) {
+                    reject(error);
+                }
+            });
         });
     }
 
     async put(storeName, data) {
         await this.ensureReady();
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readwrite');
-            const store = transaction.objectStore(storeName);
-            const request = store.put(data);
-            
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+        return this.executeWithRetry(async () => {
+            return new Promise((resolve, reject) => {
+                try {
+                    const transaction = this.db.transaction([storeName], 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.put(data);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                    transaction.onerror = () => reject(transaction.error);
+                } catch (error) {
+                    reject(error);
+                }
+            });
         });
     }
 
     async delete(storeName, key) {
         await this.ensureReady();
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readwrite');
-            const store = transaction.objectStore(storeName);
-            const request = store.delete(key);
-            
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+        return this.executeWithRetry(async () => {
+            return new Promise((resolve, reject) => {
+                try {
+                    const transaction = this.db.transaction([storeName], 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.delete(key);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                    transaction.onerror = () => reject(transaction.error);
+                } catch (error) {
+                    reject(error);
+                }
+            });
         });
     }
 
     async clear(storeName) {
         await this.ensureReady();
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readwrite');
-            const store = transaction.objectStore(storeName);
-            const request = store.clear();
-            
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+        return this.executeWithRetry(async () => {
+            return new Promise((resolve, reject) => {
+                try {
+                    const transaction = this.db.transaction([storeName], 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.clear();
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                    transaction.onerror = () => reject(transaction.error);
+                } catch (error) {
+                    reject(error);
+                }
+            });
         });
     }
 
@@ -199,9 +252,23 @@ class IndexedDBManager {
                 tasks = tasks.filter(task => task.date === filters.date);
             }
             
-            return tasks;
+            return tasks || [];
         } catch (error) {
             console.error('❌ Error obteniendo tareas:', error);
+            
+            // Intentar recuperación si es error de BD cerrada
+            if (error.message && error.message.includes('closed database')) {
+                console.log('🔄 Reintentando obtener tareas tras reconexión...');
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    let tasks = await this.getAll('tasks');
+                    return tasks || [];
+                } catch (retryError) {
+                    console.error('❌ Error en reintento:', retryError);
+                    return [];
+                }
+            }
+            
             return [];
         }
     }
@@ -242,9 +309,24 @@ class IndexedDBManager {
 
     async getProjects() {
         try {
-            return await this.getAll('projects');
+            const projects = await this.getAll('projects');
+            return projects || [];
         } catch (error) {
             console.error('❌ Error obteniendo proyectos:', error);
+            
+            // Intentar recuperación si es error de BD cerrada
+            if (error.message && error.message.includes('closed database')) {
+                console.log('🔄 Reintentando obtener proyectos tras reconexión...');
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    const projects = await this.getAll('projects');
+                    return projects || [];
+                } catch (retryError) {
+                    console.error('❌ Error en reintento:', retryError);
+                    return [];
+                }
+            }
+            
             return [];
         }
     }
@@ -279,9 +361,24 @@ class IndexedDBManager {
 
     async getSyncQueue() {
         try {
-            return await this.getAll('syncQueue', 'status', 'pending');
+            const queue = await this.getAll('syncQueue', 'status', 'pending');
+            return queue || [];
         } catch (error) {
             console.error('❌ Error obteniendo cola de sync:', error);
+            
+            // Intentar recuperación si es error de BD cerrada
+            if (error.message && error.message.includes('closed database')) {
+                console.log('🔄 Reintentando obtener cola de sync tras reconexión...');
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    const queue = await this.getAll('syncQueue', 'status', 'pending');
+                    return queue || [];
+                } catch (retryError) {
+                    console.error('❌ Error en reintento:', retryError);
+                    return [];
+                }
+            }
+            
             return [];
         }
     }
@@ -351,6 +448,28 @@ class IndexedDBManager {
             return item.data;
         } catch (error) {
             console.error('❌ Error obteniendo cache:', error);
+            
+            // Intentar recuperación si es error de BD cerrada
+            if (error.message && error.message.includes('closed database')) {
+                console.log('🔄 Reintentando obtener cache tras reconexión...');
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    const item = await this.get('cache', key);
+                    if (!item) return null;
+                    
+                    if (Date.now() > item.expiry) {
+                        await this.delete('cache', key);
+                        return null;
+                    }
+                    
+                    return item.data;
+                } catch (retryError) {
+                    console.error('❌ Error en reintento:', retryError);
+                    return null;
+                }
+            }
+            
+            return null;
             return null;
         }
     }
@@ -374,9 +493,63 @@ class IndexedDBManager {
     // UTILIDADES
     // =================================================================================
     async ensureReady() {
-        if (!this.isReady) {
-            await this.initPromise;
+        if (!this.isReady || !this.db || this.db.objectStoreNames.length === 0) {
+            try {
+                await this.initPromise;
+                
+                // Verificar que la BD realmente esté lista
+                if (!this.db || this.db.objectStoreNames.length === 0) {
+                    console.warn('⚠️ BD no inicializada correctamente, reintentando...');
+                    this.isReady = false;
+                    this.initPromise = this.init();
+                    await this.initPromise;
+                }
+            } catch (error) {
+                console.error('❌ Error en ensureReady, reintentando:', error);
+                this.isReady = false;
+                this.initPromise = this.init();
+                await this.initPromise;
+            }
         }
+    }
+
+    // Método para ejecutar operaciones con reintentos automáticos
+    async executeWithRetry(operation, maxRetries = 3) {
+        let lastError;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                return await operation();
+            } catch (error) {
+                lastError = error;
+                console.warn(`⚠️ Intento ${attempt} falló:`, error.message);
+                
+                // Si la BD está cerrada, intentar reconectar
+                if (error.message.includes('closed database') || 
+                    error.message.includes('transaction') || 
+                    error.name === 'InvalidStateError') {
+                    
+                    console.log('🔄 Reconectando a IndexedDB...');
+                    this.isReady = false;
+                    this.db = null;
+                    this.initPromise = this.init();
+                    
+                    try {
+                        await this.initPromise;
+                        continue; // Reintentar con la nueva conexión
+                    } catch (initError) {
+                        console.error('❌ Error reconectando:', initError);
+                    }
+                }
+                
+                // Si no es el último intento, esperar antes de reintentar
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                }
+            }
+        }
+        
+        throw lastError;
     }
 
     async getStats() {

@@ -10,8 +10,8 @@ class DataAdapter {
 
     async init() {
         try {
-            // Esperar a que IndexedDB esté listo
-            await window.IndexedDBManager.initPromise;
+            // ✨ Esperar a que IndexedDBManager esté disponible con reintentos
+            await this.waitForIndexedDBManager();
             
             // Verificar si podemos usar Firebase
             this.useFirebase = this.canUseFirebase();
@@ -21,7 +21,49 @@ class DataAdapter {
             }
         } catch (error) {
             console.error('❌ Error inicializando Data Adapter:', error);
+            // No re-lanzar el error para evitar romper la cadena de inicialización
         }
+    }
+
+    // ✨ NUEVO: Esperar a que IndexedDBManager esté disponible
+    async waitForIndexedDBManager(maxAttempts = 30, delay = 150) {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            // Verificar que IndexedDBManager existe y está inicializado
+            if (window.IndexedDBManager && 
+                typeof window.IndexedDBManager === 'object' &&
+                window.IndexedDBManager.initPromise) {
+                
+                try {
+                    await window.IndexedDBManager.initPromise;
+                    
+                    // Verificación adicional de que los métodos están disponibles
+                    if (typeof window.IndexedDBManager.get === 'function') {
+                        if (window.IS_DEV) {
+                            console.log(`✅ IndexedDBManager verificado (intento ${attempt})`);
+                        }
+                        return;
+                    }
+                } catch (error) {
+                    if (window.IS_DEV) {
+                        console.warn(`⚠️ Error esperando IndexedDBManager (intento ${attempt}):`, error);
+                    }
+                }
+            }
+            
+            if (window.IS_DEV && attempt % 5 === 0) {
+                console.log(`⏳ Esperando IndexedDBManager... (intento ${attempt}/${maxAttempts})`);
+                console.log(`🔍 Estado actual:`, {
+                    exists: !!window.IndexedDBManager,
+                    type: typeof window.IndexedDBManager,
+                    hasInitPromise: !!(window.IndexedDBManager?.initPromise)
+                });
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        
+        console.warn('⚠️ IndexedDBManager no disponible después de esperar, continuando sin él...');
+        // No lanzar error, solo advertir
     }
 
     canUseFirebase() {
@@ -30,6 +72,13 @@ class DataAdapter {
                window.authManager.isAuthenticated() &&
                window.dataManager &&
                navigator.onLine;
+    }
+
+    // ✨ Helper para verificar disponibilidad de IndexedDBManager
+    isIndexedDBReady() {
+        return window.IndexedDBManager && 
+               typeof window.IndexedDBManager === 'object' &&
+               typeof window.IndexedDBManager.get === 'function';
     }
 
     // =================================================================================
@@ -47,9 +96,12 @@ class DataAdapter {
             // Usar Data Sync Manager para guardado optimista
             if (window.DataSyncManager) {
                 return await window.DataSyncManager.saveTaskOptimistic(taskData);
-            } else {
-                // Fallback directo a IndexedDB
+            } else if (this.isIndexedDBReady()) {
+                // Fallback directo a IndexedDB si está disponible
                 return await window.IndexedDBManager.saveTask(taskData);
+            } else {
+                console.warn('⚠️ No hay sistemas de almacenamiento disponibles');
+                return taskData; // Retornar datos sin guardar
             }
         } catch (error) {
             console.error('❌ Error guardando tarea:', error);
@@ -61,8 +113,13 @@ class DataAdapter {
         try {
             await this.initPromise;
             
-            // Siempre usar IndexedDB como fuente principal
-            return await window.IndexedDBManager.getTasks(filters);
+            // Verificar que IndexedDB esté disponible
+            if (this.isIndexedDBReady()) {
+                return await window.IndexedDBManager.getTasks(filters);
+            } else {
+                console.warn('⚠️ IndexedDBManager no disponible para obtener tareas');
+                return [];
+            }
         } catch (error) {
             console.error('❌ Error obteniendo tareas:', error);
             return [];
@@ -75,8 +132,11 @@ class DataAdapter {
             
             if (window.DataSyncManager) {
                 return await window.DataSyncManager.deleteTaskOptimistic(taskId);
-            } else {
+            } else if (this.isIndexedDBReady()) {
                 return await window.IndexedDBManager.deleteTask(taskId);
+            } else {
+                console.warn('⚠️ No hay sistemas de almacenamiento disponibles para eliminar');
+                return false;
             }
         } catch (error) {
             console.error('❌ Error eliminando tarea:', error);
@@ -166,10 +226,14 @@ class DataAdapter {
         try {
             await this.initPromise;
             
-            const config = { key, value, lastModified: Date.now() };
-            await window.IndexedDBManager.put('userConfig', config);
-            
-            return config;
+            if (this.isIndexedDBReady()) {
+                const config = { key, value, lastModified: Date.now() };
+                await window.IndexedDBManager.put('userConfig', config);
+                return config;
+            } else {
+                console.warn('⚠️ IndexedDBManager no disponible para guardar configuración');
+                return { key, value, lastModified: Date.now() };
+            }
         } catch (error) {
             console.error('❌ Error guardando configuración:', error);
             throw error;
@@ -180,8 +244,13 @@ class DataAdapter {
         try {
             await this.initPromise;
             
-            const config = await window.IndexedDBManager.get('userConfig', key);
-            return config ? config.value : null;
+            if (this.isIndexedDBReady()) {
+                const config = await window.IndexedDBManager.get('userConfig', key);
+                return config ? config.value : null;
+            } else {
+                console.warn('⚠️ IndexedDBManager no disponible para obtener configuración');
+                return null;
+            }
         } catch (error) {
             console.error('❌ Error obteniendo configuración:', error);
             return null;

@@ -407,35 +407,8 @@ class GestureHandler {
     // FEEDBACK VISUAL
     // =================================================================================
     showGestureIndicator(direction, velocity) {
-        const indicator = document.createElement('div');
-        indicator.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-theme-primary text-white px-4 py-2 rounded-full text-sm z-50';
-        
-        const arrows = {
-            up: '↑',
-            down: '↓',
-            left: '←',
-            right: '→'
-        };
-        
-        indicator.innerHTML = `${arrows[direction]} ${direction.toUpperCase()}`;
-        
-        document.body.appendChild(indicator);
-        
-        // Animar
-        indicator.style.opacity = '0';
-        indicator.style.transform = 'translate(-50%, -50%) scale(0.5)';
-        indicator.style.transition = 'all 0.3s ease-out';
-        
-        requestAnimationFrame(() => {
-            indicator.style.opacity = '1';
-            indicator.style.transform = 'translate(-50%, -50%) scale(1)';
-        });
-        
-        setTimeout(() => {
-            indicator.style.opacity = '0';
-            indicator.style.transform = 'translate(-50%, -50%) scale(0.5)';
-            setTimeout(() => indicator.remove(), 300);
-        }, 1000);
+        // Pop-ups de dirección deshabilitados para mejor UX
+        return;
     }
 
     showActionFeedback(message, type = 'info') {
@@ -461,23 +434,8 @@ class GestureHandler {
     }
 
     createGestureIndicators() {
-        // Crear indicadores visuales para gestos disponibles si es necesario
-        if (!this.isMobile) return;
-        
-        const indicator = document.createElement('div');
-        indicator.id = 'gesture-hint';
-        indicator.className = 'fixed bottom-2 right-2 text-xs text-gray-500 z-40 pointer-events-none';
-        indicator.innerHTML = '👆 Swipe para navegar';
-        
-        document.body.appendChild(indicator);
-        
-        // Auto-ocultar después de 5 segundos
-        setTimeout(() => {
-            if (indicator.parentNode) {
-                indicator.style.opacity = '0';
-                setTimeout(() => indicator.remove(), 300);
-            }
-        }, 5000);
+        // Indicadores visuales deshabilitados para mejor UX
+        return;
     }
 
     // =================================================================================
