@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="orionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fondo circular -->
+  <circle cx="50" cy="50" r="45" fill="url(#orionGradient)" stroke="#1E1B2E" stroke-width="3"/>
+  
+  <!-- Estrella central -->
+  <polygon points="50,15 55,35 75,35 60,47 65,67 50,55 35,67 40,47 25,35 45,35" fill="#FFFFFF" opacity="0.9"/>
+  
+  <!-- Puntos pequeños alrededor (constelación) -->
+  <circle cx="25" cy="25" r="2" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="75" cy="25" r="1.5" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="20" cy="70" r="1" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="80" cy="75" r="1.5" fill="#FFFFFF" opacity="0.6"/>
+  
+  <!-- Texto ORION pequeño -->
+  <text x="50" y="85" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="8" font-weight="bold" opacity="0.8">ORION</text>
+</svg>

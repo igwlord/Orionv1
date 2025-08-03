@@ -1,0 +1,2 @@
+<!-- Archivo placeholder para favicon.ico -->
+<!-- En producción, convierte el SVG a ICO usando herramientas online -->
