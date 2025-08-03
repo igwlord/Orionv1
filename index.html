@@ -60,12 +60,12 @@
                         // Notificar que feather está listo
                         window.dispatchEvent(new CustomEvent('featherReady'));
                         if (window.IS_DEV) {
-                            console.log('✅ Feather Icons cargado correctamente');
+                            Logger.success('Feather Icons cargado correctamente');
                         }
                     }
                 };
                 featherScript.onerror = () => {
-                    console.warn('No se pudo cargar Feather Icons');
+                    Logger.warn('No se pudo cargar Feather Icons');
                 };
                 document.head.appendChild(featherScript);
             }
@@ -74,7 +74,7 @@
                 const sortableScript = document.createElement('script');
                 sortableScript.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js';
                 sortableScript.onerror = () => {
-                    console.warn('No se pudo cargar SortableJS');
+                    Logger.warn('No se pudo cargar SortableJS');
                 };
                 document.head.appendChild(sortableScript);
             }
@@ -757,6 +757,9 @@
 
 
     <script type="module">
+        // Importar sistema de logs optimizado
+        import './src/utils/logger.js';
+        
         // Importar módulos de Firebase y autenticación
         import { authManager } from './src/auth.js';
         import { dataManager } from './src/utils/storage.js';
@@ -807,7 +810,7 @@
                 this._lastError = { error, context, timestamp: Date.now() };
                 
                 if (IS_DEV) {
-                    console.error(`[${context}] Error:`, error);
+                    Logger.error(`[${context}] Error:`, error);
                 }
 
                 // Mostrar error al usuario solo si es crítico
@@ -899,7 +902,7 @@
                         feather.replace();
                     } catch (error) {
                         if (IS_DEV) {
-                            console.warn('Error al procesar iconos feather:', error);
+                            Logger.warn('Error al procesar iconos feather:', error);
                         }
                     }
                 }
@@ -1059,12 +1062,12 @@
                     }
 
                     if (IS_DEV) {
-                        console.log('✅ Datos cargados exitosamente');
+                        Logger.success('Datos cargados exitosamente');
                     }
                 } catch (error) {
                     ErrorHandler.handleError(error, 'DataService.load');
                     if (IS_DEV) {
-                        console.error('❌ Error cargando datos:', error);
+                        Logger.db('Error cargando datos:', error);
                     }
                     // Fallback al localStorage para compatibilidad
                     this.loadFromLocalStorage();
@@ -1083,12 +1086,12 @@
                     ]);
                     
                     if (IS_DEV) {
-                        console.log('✅ Datos guardados exitosamente');
+                        Logger.db('Datos guardados exitosamente');
                     }
                 } catch (error) {
                     ErrorHandler.handleError(error, 'DataService.save');
                     if (IS_DEV) {
-                        console.error('❌ Error guardando datos:', error);
+                        Logger.db('Error guardando datos:', error);
                     }
                     // Fallback al localStorage
                     this.saveToLocalStorage();
@@ -1104,7 +1107,7 @@
                         Object.assign(AppState, parsedState);
                     } catch(e) {
                         if (IS_DEV) {
-                            console.error("Failed to parse state from localStorage:", e);
+                            Logger.error("Failed to parse state from localStorage:", e);
                         }
                         localStorage.removeItem('orionAppState_v2');
                     }
@@ -1743,7 +1746,7 @@
                         DOM.loginLoading.classList.add('hidden');
                         this.showNotification('Error al iniciar sesión', 'error');
                         if (IS_DEV) {
-                            console.error('Error en login:', error);
+                            Logger.firebase('Error en login:', error);
                         }
                     }
                 });
@@ -1918,7 +1921,7 @@
                 
                 DataService.save().catch(error => {
                     if (IS_DEV) {
-                        console.error(error);
+                        Logger.error(error);
                     }
                 }); // Guardar sin bloquear
                 UIManager.renderTasksDebounced();
@@ -2001,7 +2004,7 @@
                 AppState.projects.push(newProject);
                 DataService.save().catch(error => {
                     if (IS_DEV) {
-                        console.error(error);
+                        Logger.error(error);
                     }
                 });
                 UIManager.renderProjectFilters();
@@ -2080,7 +2083,7 @@
             // Configurar listeners en tiempo real para sincronización
             setupRealtimeListeners() {
                 if (IS_DEV) {
-                    console.log('🔄 Configurando listeners en tiempo real...');
+                    Logger.firebase('Configurando listeners en tiempo real...');
                 }
                 
                 // Listener para tareas
@@ -2092,7 +2095,7 @@
                         UIManager.renderProjectSummary();
                         UIManager.renderCalendarDebounced();
                         if (IS_DEV) {
-                            console.log('📋 Tareas sincronizadas');
+                            Logger.firebase('Tareas sincronizadas');
                         }
                     }
                 });
@@ -2104,7 +2107,7 @@
                         UIManager.renderProjectFilters();
                         UIManager.renderProjectSummary();
                         if (IS_DEV) {
-                            console.log('📁 Proyectos sincronizados');
+                            Logger.firebase('Proyectos sincronizados');
                         }
                     }
                 });
@@ -2123,13 +2126,13 @@
                         // Actualizar nombre en dashboard
                         DOM.userName.textContent = AppState.user.name || 'Usuario';
                         if (IS_DEV) {
-                            console.log('⚙️ Configuración sincronizada');
+                            Logger.firebase('Configuración sincronizada');
                         }
                     }
                 });
                 
                 if (IS_DEV) {
-                    console.log('✅ Listeners en tiempo real configurados');
+                    Logger.firebase('Listeners en tiempo real configurados');
                 }
             },
 
@@ -2144,7 +2147,7 @@
                 }
                 
                 if (IS_DEV) {
-                    console.log('🔗 Listeners de conexión configurados');
+                    Logger.firebase('Listeners de conexión configurados');
                 }
             },
 
@@ -2311,7 +2314,7 @@
                             AppState.currentDate = new Date(); // Resetear siempre la fecha actual
                             DataService.save().catch(error => {
                                 if (IS_DEV) {
-                                    console.error(error);
+                                    Logger.error(error);
                                 }
                             });
                             this.renderInitialUI();
@@ -2357,7 +2360,7 @@
                         window.location.reload();
                     } catch (error) {
                         if (IS_DEV) {
-                            console.error('Error al cerrar sesión:', error);
+                            Logger.firebase('Error al cerrar sesión:', error);
                         }
                         window.location.reload();
                     }
@@ -2436,7 +2439,7 @@
                         replaceTimeout = setTimeout(() => originalFeatherReplace.call(this), 50);
                     };
                     if (IS_DEV) {
-                        console.log('✅ Feather Icons optimizado');
+                        Logger.perf('Feather Icons optimizado');
                     }
                 } else {
                     // Escuchar el evento featherReady
@@ -2483,7 +2486,7 @@
                 ErrorHandler.reset();
                 
                 if (IS_DEV) {
-                    console.log('🚀 Aplicación optimizada y lista para escalar');
+                    Logger.perf('Aplicación optimizada y lista para escalar');
                 }
             },
 
@@ -2531,11 +2534,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 if (window.IS_DEV) {
-                    console.log('🔄 Verificando Phase 3 managers...');
-                    console.log('AppShellManager:', !!window.AppShellManager);
-                    console.log('KeyboardShortcuts:', !!window.KeyboardShortcuts);
-                    console.log('GestureHandler:', !!window.GestureHandler);
-                    console.log('LoadingStates:', !!window.LoadingStates);
+                    Logger.debug('Verificando Phase 3 managers...');
+                    Logger.debug('AppShellManager:', !!window.AppShellManager);
+                    Logger.debug('KeyboardShortcuts:', !!window.KeyboardShortcuts);
+                    Logger.debug('GestureHandler:', !!window.GestureHandler);
+                    Logger.debug('LoadingStates:', !!window.LoadingStates);
                 }
             }, 1000);
         });
