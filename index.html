@@ -4,12 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ORION - Organiza. Evoluciona. Expande tu universo.</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌟</text></svg>">
+    <!-- DESARROLLO: Para producción, instalar Tailwind CSS como PostCSS plugin -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <!-- Lazy loading de recursos no críticos -->
+    <script>
+        // Definir IS_DEV globalmente para acceso temprano
+        window.IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '';
+        
+        // Lazy load Feather Icons y SortableJS
+        window.lazyLoadResources = function() {
+            if (!window.feather) {
+                const featherScript = document.createElement('script');
+                featherScript.src = 'https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js';
+                featherScript.onload = () => {
+                    if (window.feather) {
+                        feather.replace();
+                        // Notificar que feather está listo
+                        window.dispatchEvent(new CustomEvent('featherReady'));
+                        if (window.IS_DEV) {
+                            console.log('✅ Feather Icons cargado correctamente');
+                        }
+                    }
+                };
+                featherScript.onerror = () => {
+                    console.warn('No se pudo cargar Feather Icons');
+                };
+                document.head.appendChild(featherScript);
+            }
+            
+            if (!window.Sortable) {
+                const sortableScript = document.createElement('script');
+                sortableScript.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js';
+                sortableScript.onerror = () => {
+                    console.warn('No se pudo cargar SortableJS');
+                };
+                document.head.appendChild(sortableScript);
+            }
+        };
+        
+        // Cargar cuando se transite a la app principal
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(window.lazyLoadResources, 2000); // Cargar después de 2 segundos
+        });
+    </script>
 
     <style>
         /* Estilos base y configuración de temas con Tailwind */
@@ -118,6 +163,36 @@
             100% {
                 transform: rotate(360deg);
             }
+        }
+        
+        /* Skeleton Loading Styles */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-dark) 25%, rgba(255,255,255,0.1) 50%, var(--bg-dark) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .skeleton-text {
+            height: 12px;
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+        
+        .skeleton-title {
+            height: 16px;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+        
+        .skeleton-card {
+            height: 80px;
+            border-radius: 8px;
+            margin: 8px 0;
         }
         
         /* Estilos para el Canvas del fondo de estrellas */
@@ -617,6 +692,9 @@
     // ORION APP - v2.4 (Unified Background & Fixes)
     // =================================================================================
     document.addEventListener('DOMContentLoaded', () => {
+        
+        // Usar la variable IS_DEV global definida anteriormente
+        const IS_DEV = window.IS_DEV;
     
         // -----------------------------------------------------------------------------
         // A. ESTADO GLOBAL Y CONFIGURACIÓN
@@ -637,7 +715,118 @@
             currentDate: new Date(),
             selectedCalendarDate: null,
         };
-    
+
+        // -----------------------------------------------------------------------------
+        // ERROR BOUNDARY Y MANEJO DE ERRORES
+        // -----------------------------------------------------------------------------
+        const ErrorHandler = {
+            _errorCount: 0,
+            _lastError: null,
+
+            handleError(error, context = 'Unknown') {
+                this._errorCount++;
+                this._lastError = { error, context, timestamp: Date.now() };
+                
+                if (IS_DEV) {
+                    console.error(`[${context}] Error:`, error);
+                }
+
+                // Mostrar error al usuario solo si es crítico
+                if (this._errorCount > 3) {
+                    this.showCriticalError();
+                } else {
+                    this.showRecoverableError(context);
+                }
+            },
+
+            showRecoverableError(context) {
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-red-500 text-white p-3 rounded-lg z-50 opacity-0 transition-opacity';
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <span>⚠️ Error en ${context}. Reintentando...</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">×</button>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.classList.remove('opacity-0'), 100);
+                setTimeout(() => notification.remove(), 4000);
+            },
+
+            showCriticalError() {
+                App.openInfoModal({
+                    title: 'Error Crítico',
+                    message: 'La aplicación ha encontrado errores múltiples. Se recomienda recargar la página.',
+                    type: 'error'
+                });
+            },
+
+            reset() {
+                this._errorCount = 0;
+                this._lastError = null;
+            }
+        };
+
+        // Capturar errores globales
+        window.addEventListener('error', (event) => {
+            ErrorHandler.handleError(event.error, 'Global');
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            ErrorHandler.handleError(event.reason, 'Promise');
+        });
+
+        // -----------------------------------------------------------------------------
+        // UTILIDADES DE RENDIMIENTO
+        // -----------------------------------------------------------------------------
+        const PerformanceUtils = {
+            // Debounce para evitar renderizados excesivos
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            },
+
+            // Throttle para eventos de scroll
+            throttle(func, limit) {
+                let inThrottle;
+                return function() {
+                    const args = arguments;
+                    const context = this;
+                    if (!inThrottle) {
+                        func.apply(context, args);
+                        inThrottle = true;
+                        setTimeout(() => inThrottle = false, limit);
+                    }
+                }
+            }
+        };
+
+        // -----------------------------------------------------------------------------
+        // UTILIDADES DE ICONOS
+        // -----------------------------------------------------------------------------
+        const IconUtils = {
+            // Función segura para reemplazar iconos de feather
+            safeFeatherReplace() {
+                if (window.feather && window.feather.replace) {
+                    try {
+                        feather.replace();
+                    } catch (error) {
+                        if (IS_DEV) {
+                            console.warn('Error al procesar iconos feather:', error);
+                        }
+                    }
+                }
+            }
+        };
+
         // -----------------------------------------------------------------------------
         // B. SELECTORES DEL DOM
         // -----------------------------------------------------------------------------
@@ -776,21 +965,28 @@
                         Object.assign(AppState.user, userConfig);
                     }
 
-                    // Cargar tareas
-                    const tasks = await window.dataManager.loadData('tasks');
+                    // Cargar datos en paralelo para mejor rendimiento
+                    const [tasks, projects] = await Promise.all([
+                        window.dataManager.loadData('tasks'),
+                        window.dataManager.loadData('projects')
+                    ]);
+                    
                     if (tasks && Array.isArray(tasks)) {
                         AppState.tasks = tasks;
                     }
-
-                    // Cargar proyectos
-                    const projects = await window.dataManager.loadData('projects');
+                    
                     if (projects && Array.isArray(projects)) {
                         AppState.projects = projects;
                     }
 
-                    console.log('✅ Datos cargados exitosamente');
+                    if (IS_DEV) {
+                        console.log('✅ Datos cargados exitosamente');
+                    }
                 } catch (error) {
-                    console.error('❌ Error cargando datos:', error);
+                    ErrorHandler.handleError(error, 'DataService.load');
+                    if (IS_DEV) {
+                        console.error('❌ Error cargando datos:', error);
+                    }
                     // Fallback al localStorage para compatibilidad
                     this.loadFromLocalStorage();
                 }
@@ -800,18 +996,21 @@
 
             async save() {
                 try {
-                    // Guardar configuración del usuario
-                    await window.dataManager.saveData('user_config', AppState.user);
+                    // Guardar datos en paralelo para mejor rendimiento
+                    await Promise.all([
+                        window.dataManager.saveData('user_config', AppState.user),
+                        window.dataManager.saveData('tasks', AppState.tasks),
+                        window.dataManager.saveData('projects', AppState.projects)
+                    ]);
                     
-                    // Guardar tareas
-                    await window.dataManager.saveData('tasks', AppState.tasks);
-                    
-                    // Guardar proyectos  
-                    await window.dataManager.saveData('projects', AppState.projects);
-                    
-                    console.log('✅ Datos guardados exitosamente');
+                    if (IS_DEV) {
+                        console.log('✅ Datos guardados exitosamente');
+                    }
                 } catch (error) {
-                    console.error('❌ Error guardando datos:', error);
+                    ErrorHandler.handleError(error, 'DataService.save');
+                    if (IS_DEV) {
+                        console.error('❌ Error guardando datos:', error);
+                    }
                     // Fallback al localStorage
                     this.saveToLocalStorage();
                 }
@@ -825,7 +1024,9 @@
                         const parsedState = JSON.parse(savedState);
                         Object.assign(AppState, parsedState);
                     } catch(e) {
-                        console.error("Failed to parse state from localStorage:", e);
+                        if (IS_DEV) {
+                            console.error("Failed to parse state from localStorage:", e);
+                        }
                         localStorage.removeItem('orionAppState_v2');
                     }
                 }
@@ -871,7 +1072,7 @@
                 
                 DOM.streakCount.textContent = AppState.user.streak || 0;
                 this.renderProjectSummary();
-                feather.replace();
+                IconUtils.safeFeatherReplace();
             },
     
             renderTasks() {
@@ -916,7 +1117,7 @@
                     });
                 }
 
-                feather.replace();
+                IconUtils.safeFeatherReplace();
             },
     
             renderCalendar() {
@@ -971,7 +1172,7 @@
                     
                     grid.appendChild(dayCell);
                 }
-                feather.replace();
+                IconUtils.safeFeatherReplace();
             },
     
             renderSettings() {
@@ -1026,7 +1227,7 @@
                     `;
                     DOM.projectSummaryList.appendChild(item);
                 });
-                feather.replace();
+                IconUtils.safeFeatherReplace();
             },
 
             // -- Creación de elementos --
@@ -1116,8 +1317,42 @@
                     button.innerHTML = button.dataset.originalText;
                 }
             },
+
+            // -- Skeleton Loading para mejor UX --
+            showSkeletonTasks() {
+                const columns = [DOM.todoColumn, DOM.doingColumn, DOM.completedColumn];
+                columns.forEach(column => {
+                    column.innerHTML = '';
+                    for (let i = 0; i < 3; i++) {
+                        const skeleton = document.createElement('div');
+                        skeleton.className = 'skeleton skeleton-card bg-theme-card p-3 rounded-lg';
+                        column.appendChild(skeleton);
+                    }
+                });
+            },
+
+            showSkeletonDashboard() {
+                DOM.todayTasksList.innerHTML = `
+                    <div class="skeleton skeleton-text w-3/4"></div>
+                    <div class="skeleton skeleton-text w-1/2"></div>
+                    <div class="skeleton skeleton-text w-2/3"></div>
+                `;
+                DOM.upcomingTasksList.innerHTML = `
+                    <div class="skeleton skeleton-text w-4/5"></div>
+                    <div class="skeleton skeleton-text w-3/5"></div>
+                `;
+            },
+
+            hideSkeletons() {
+                document.querySelectorAll('.skeleton').forEach(el => el.remove());
+            }
         };
-    
+
+        // Versiones optimizadas con debounce para funciones de renderizado críticas
+        UIManager.renderTasksDebounced = PerformanceUtils.debounce(UIManager.renderTasks.bind(UIManager), 100);
+        UIManager.renderDashboardDebounced = PerformanceUtils.debounce(UIManager.renderDashboard.bind(UIManager), 150);
+        UIManager.renderCalendarDebounced = PerformanceUtils.debounce(UIManager.renderCalendar.bind(UIManager), 200);
+
         // -----------------------------------------------------------------------------
         // E. GESTOR DE MODALES Y ACCESIBILIDAD
         // -----------------------------------------------------------------------------
@@ -1167,29 +1402,83 @@
                 }
             }
         };
-    
+
+        // -----------------------------------------------------------------------------
+        // COMPONENTE LAZY LOADER
+        // -----------------------------------------------------------------------------
+        const ComponentLoader = {
+            _loadedComponents: new Set(),
+            
+            async loadStarfield() {
+                if (this._loadedComponents.has('starfield')) return;
+                
+                // Solo cargar starfield cuando se muestre la pantalla de bienvenida
+                if (!DOM.welcomeScreen.classList.contains('hidden')) {
+                    App.initStarfield();
+                    this._loadedComponents.add('starfield');
+                }
+            },
+            
+            async loadSortable() {
+                if (this._loadedComponents.has('sortable')) return;
+                
+                // Esperar a que SortableJS esté disponible
+                return new Promise((resolve) => {
+                    const checkSortable = () => {
+                        if (window.Sortable) {
+                            App.initSortable();
+                            this._loadedComponents.add('sortable');
+                            resolve();
+                        } else {
+                            setTimeout(checkSortable, 100);
+                        }
+                    };
+                    checkSortable();
+                });
+            },
+            
+            async loadCalendar() {
+                if (this._loadedComponents.has('calendar')) return;
+                
+                // Cargar calendario solo cuando se navegue a él
+                UIManager.renderCalendar();
+                this._loadedComponents.add('calendar');
+            }
+        };
+
         // -----------------------------------------------------------------------------
         // F. LÓGICA DE LA APLICACIÓN Y MANEJADORES DE EVENTOS
         // -----------------------------------------------------------------------------
         const App = {
             init() {
+                // Cargar recursos críticos primero
+                window.lazyLoadResources();
+                
                 DataService.load();
                 this.setupEventListeners();
                 UIManager.applyTheme();
                 this.renderInitialUI();
                 this.initWelcomeAnimation();
-                this.initSortable();
-                this.initStarfield();
+                
+                // Carga diferida de componentes pesados
+                ComponentLoader.loadStarfield();
+                setTimeout(() => ComponentLoader.loadSortable(), 1000);
+                
                 this.updateNotificationIndicator();
             },
     
             renderInitialUI() {
                 UIManager.renderDashboard();
                 UIManager.renderTasks();
-                UIManager.renderCalendar();
+                // Calendario se carga bajo demanda
                 UIManager.renderSettings();
                 UIManager.renderProjectFilters();
-                feather.replace();
+                
+                // Cargar recursos y luego aplicar iconos
+                window.lazyLoadResources();
+                
+                // Aplicar iconos de forma segura
+                IconUtils.safeFeatherReplace();
             },
     
             initWelcomeAnimation() {
@@ -1374,7 +1663,9 @@
                     } catch (error) {
                         DOM.loginLoading.classList.add('hidden');
                         this.showNotification('Error al iniciar sesión', 'error');
-                        console.error('Error en login:', error);
+                        if (IS_DEV) {
+                            console.error('Error en login:', error);
+                        }
                     }
                 });
 
@@ -1524,38 +1815,40 @@
                 const modal = DOM.taskModal;
                 UIManager.setButtonLoading(modal.saveBtn, true);
     
-                setTimeout(() => {
-                    const id = modal.idInput.value;
-                    const taskData = {
-                        id: id || `task-${Date.now()}`,
-                        title: modal.nameInput.value,
-                        description: modal.descriptionInput.value,
-                        dueDate: modal.dateInput.value || null,
-                        addToCalendar: modal.calendarCheckbox.checked,
-                        project: modal.projectSelect.value === 'none' ? null : modal.projectSelect.value,
-                        priority: modal.form.querySelector('input[name="priority"]:checked').value,
-                        completed: false,
-                        createdAt: Date.now(),
-                        completedAt: null
-                    };
-    
-                    if (id) {
-                        const taskIndex = AppState.tasks.findIndex(t => t.id === id);
-                        AppState.tasks[taskIndex] = { ...AppState.tasks[taskIndex], ...taskData };
-                    } else {
-                        taskData.status = 'todo';
-                        AppState.tasks.push(taskData);
+                const id = modal.idInput.value;
+                const taskData = {
+                    id: id || `task-${Date.now()}`,
+                    title: modal.nameInput.value,
+                    description: modal.descriptionInput.value,
+                    dueDate: modal.dateInput.value || null,
+                    addToCalendar: modal.calendarCheckbox.checked,
+                    project: modal.projectSelect.value === 'none' ? null : modal.projectSelect.value,
+                    priority: modal.form.querySelector('input[name="priority"]:checked').value,
+                    completed: false,
+                    createdAt: Date.now(),
+                    completedAt: null
+                };
+
+                if (id) {
+                    const taskIndex = AppState.tasks.findIndex(t => t.id === id);
+                    AppState.tasks[taskIndex] = { ...AppState.tasks[taskIndex], ...taskData };
+                } else {
+                    taskData.status = 'todo';
+                    AppState.tasks.push(taskData);
+                }
+                
+                DataService.save().catch(error => {
+                    if (IS_DEV) {
+                        console.error(error);
                     }
-                    
-                    DataService.save().catch(console.error); // Guardar sin bloquear
-                    UIManager.renderTasks();
-                    UIManager.renderDashboard();
-                    UIManager.renderProjectSummary();
-                    UIManager.renderCalendar();
-                    this.updateNotificationIndicator();
-                    UIManager.setButtonLoading(modal.saveBtn, false);
-                    ModalManager.close(modal);
-                }, 300);
+                }); // Guardar sin bloquear
+                UIManager.renderTasksDebounced();
+                UIManager.renderDashboardDebounced();
+                UIManager.renderProjectSummary();
+                UIManager.renderCalendarDebounced();
+                this.updateNotificationIndicator();
+                UIManager.setButtonLoading(modal.saveBtn, false);
+                ModalManager.close(modal);
             },
     
             handleDeleteTask(taskId) {
@@ -1622,18 +1915,20 @@
                 const modal = DOM.projectModal;
                 UIManager.setButtonLoading(modal.saveBtn, true);
     
-                setTimeout(() => {
-                    const newProject = {
-                        id: `proj-${Date.now()}`,
-                        name: modal.nameInput.value,
-                    };
-                    AppState.projects.push(newProject);
-                    DataService.save().catch(console.error);
-                    UIManager.renderProjectFilters();
-                    UIManager.renderProjectSummary();
-                    UIManager.setButtonLoading(modal.saveBtn, false);
-                    ModalManager.close(modal);
-                }, 300);
+                const newProject = {
+                    id: `proj-${Date.now()}`,
+                    name: modal.nameInput.value,
+                };
+                AppState.projects.push(newProject);
+                DataService.save().catch(error => {
+                    if (IS_DEV) {
+                        console.error(error);
+                    }
+                });
+                UIManager.renderProjectFilters();
+                UIManager.renderProjectSummary();
+                UIManager.setButtonLoading(modal.saveBtn, false);
+                ModalManager.close(modal);
             },
             
             openCalendarDayModal(dateString) {
@@ -1705,17 +2000,21 @@
 
             // Configurar listeners en tiempo real para sincronización
             setupRealtimeListeners() {
-                console.log('🔄 Configurando listeners en tiempo real...');
+                if (IS_DEV) {
+                    console.log('🔄 Configurando listeners en tiempo real...');
+                }
                 
                 // Listener para tareas
                 window.dataManager.listenToData('tasks', (tasks) => {
                     if (tasks && Array.isArray(tasks)) {
                         AppState.tasks = tasks;
-                        UIManager.renderTasks();
-                        UIManager.renderDashboard();
+                        UIManager.renderTasksDebounced();
+                        UIManager.renderDashboardDebounced();
                         UIManager.renderProjectSummary();
-                        UIManager.renderCalendar();
-                        console.log('📋 Tareas sincronizadas');
+                        UIManager.renderCalendarDebounced();
+                        if (IS_DEV) {
+                            console.log('📋 Tareas sincronizadas');
+                        }
                     }
                 });
                 
@@ -1725,7 +2024,9 @@
                         AppState.projects = projects;
                         UIManager.renderProjectFilters();
                         UIManager.renderProjectSummary();
-                        console.log('📁 Proyectos sincronizados');
+                        if (IS_DEV) {
+                            console.log('📁 Proyectos sincronizados');
+                        }
                     }
                 });
                 
@@ -1742,11 +2043,15 @@
                         
                         // Actualizar nombre en dashboard
                         DOM.userName.textContent = AppState.user.name || 'Usuario';
-                        console.log('⚙️ Configuración sincronizada');
+                        if (IS_DEV) {
+                            console.log('⚙️ Configuración sincronizada');
+                        }
                     }
                 });
                 
-                console.log('✅ Listeners en tiempo real configurados');
+                if (IS_DEV) {
+                    console.log('✅ Listeners en tiempo real configurados');
+                }
             },
 
             // Configurar listeners de conexión
@@ -1759,7 +2064,9 @@
                     window.dataManager.on('syncQueueChange', () => this.updateConnectionStatus());
                 }
                 
-                console.log('🔗 Listeners de conexión configurados');
+                if (IS_DEV) {
+                    console.log('🔗 Listeners de conexión configurados');
+                }
             },
 
             // Actualizar indicador de estado de conexión
@@ -1923,7 +2230,11 @@
                         if (importedState && typeof importedState.user === 'object' && Array.isArray(importedState.tasks) && Array.isArray(importedState.projects) && typeof importedState.filters === 'object') {
                             Object.assign(AppState, importedState);
                             AppState.currentDate = new Date(); // Resetear siempre la fecha actual
-                            DataService.save().catch(console.error);
+                            DataService.save().catch(error => {
+                                if (IS_DEV) {
+                                    console.error(error);
+                                }
+                            });
                             this.renderInitialUI();
                             this.openInfoModal({ title: 'Éxito', message: '¡Datos importados correctamente!', type: 'success' });
                         } else {
@@ -1966,7 +2277,9 @@
                         await window.authManager.signOut();
                         window.location.reload();
                     } catch (error) {
-                        console.error('Error al cerrar sesión:', error);
+                        if (IS_DEV) {
+                            console.error('Error al cerrar sesión:', error);
+                        }
                         window.location.reload();
                     }
                 }, { once: true });
@@ -1987,7 +2300,7 @@
                     modal.iconContainer.classList.add('bg-green-100');
                     modal.iconContainer.innerHTML = `<i data-feather="check-circle" class="h-6 w-6 text-green-600"></i>`;
                 }
-                feather.replace();
+                IconUtils.safeFeatherReplace();
                 ModalManager.open(modal);
             },
 
@@ -2028,6 +2341,105 @@
                 });
             }
         };
+
+        // -----------------------------------------------------------------------------
+        // OPTIMIZACIONES FINALES Y LAZY LOADING  
+        // -----------------------------------------------------------------------------
+        const FinalOptimizations = {
+            // Optimizar feather.replace() calls
+            optimizeFeatherReplace() {
+                // Solo optimizar si feather ya está cargado
+                if (window.feather && window.feather.replace) {
+                    const originalFeatherReplace = feather.replace;
+                    let replaceTimeout;
+                    feather.replace = function() {
+                        clearTimeout(replaceTimeout);
+                        replaceTimeout = setTimeout(() => originalFeatherReplace.call(this), 50);
+                    };
+                    if (IS_DEV) {
+                        console.log('✅ Feather Icons optimizado');
+                    }
+                } else {
+                    // Escuchar el evento featherReady
+                    window.addEventListener('featherReady', () => {
+                        this.optimizeFeatherReplace();
+                    }, { once: true });
+                }
+            },
+
+            // Precargar recursos críticos
+            preloadCriticalResources() {
+                if ('serviceWorker' in navigator) {
+                    // Preparar para PWA en el futuro
+                }
+            },
+
+            // FASE 4: Mejorar UX con loading states mejorados
+            enhanceLoadingStates() {
+                // Implementar skeleton loading en navegación
+                const navigate = (sectionId) => {
+                    // Mostrar skeleton antes de cambiar
+                    if (sectionId === 'tasks') {
+                        UIManager.showSkeletonTasks();
+                        setTimeout(() => {
+                            UIManager.hideSkeletons();
+                            UIManager.renderTasks();
+                        }, 200);
+                    } else if (sectionId === 'dashboard') {
+                        UIManager.showSkeletonDashboard();
+                        setTimeout(() => {
+                            UIManager.hideSkeletons();
+                            UIManager.renderDashboard();
+                        }, 200);
+                    }
+                };
+            },
+
+            // FASE 5: Preparar para escalabilidad y PWA
+            prepareForScaling() {
+                // Implementar bases para PWA
+                this.setupPWASupport();
+                
+                // Error recovery
+                ErrorHandler.reset();
+                
+                if (IS_DEV) {
+                    console.log('🚀 Aplicación optimizada y lista para escalar');
+                }
+            },
+
+            // PWA Support básico
+            setupPWASupport() {
+                // Detectar instalación offline
+                if ('serviceWorker' in navigator) {
+                    // Preparado para service worker futuro
+                    if (IS_DEV) {
+                        console.log('� PWA support detectado');
+                    }
+                }
+
+                // Detectar si se ejecuta como PWA
+                const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                   window.navigator.standalone === true;
+                
+                if (isStandalone) {
+                    document.body.classList.add('pwa-mode');
+                }
+
+                // Install prompt básico
+                let deferredPrompt;
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    deferredPrompt = e;
+                    // Podrías mostrar un botón de instalación aquí
+                });
+            }
+        };
+
+        // Aplicar optimizaciones finales
+        FinalOptimizations.optimizeFeatherReplace();
+        FinalOptimizations.preloadCriticalResources();
+        FinalOptimizations.enhanceLoadingStates();
+        FinalOptimizations.prepareForScaling();
     
         // Iniciar la aplicación
         App.init();

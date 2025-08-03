@@ -48,7 +48,9 @@ export class DataManager {
   async processSyncQueue() {
     if (this.syncQueue.length === 0) return;
     
-    console.log('🔄 Procesando cola de sincronización...');
+    if (import.meta.env.DEV) {
+      console.log('🔄 Procesando cola de sincronización...');
+    }
     
     for (const operation of this.syncQueue) {
       try {
@@ -58,7 +60,9 @@ export class DataManager {
           await this.saveData(operation.collection, operation.data, operation.docId);
         }
       } catch (error) {
-        console.error('Error sincronizando:', error);
+        if (import.meta.env.DEV) {
+          console.error('Error sincronizando:', error);
+        }
       }
     }
     
@@ -66,7 +70,9 @@ export class DataManager {
     localStorage.removeItem('orion_sync_queue');
     localStorage.setItem('orion_last_sync', new Date().toISOString());
     this.emit('syncQueueChange', 0);
-    console.log('✅ Sincronización completada');
+    if (import.meta.env.DEV) {
+      console.log('✅ Sincronización completada');
+    }
   }
 
   // Eliminar datos específicos
@@ -74,7 +80,9 @@ export class DataManager {
     const user = getCurrentUser();
     
     if (!user || !user.uid) {
-      console.warn('⚠️ No hay usuario disponible para eliminar datos');
+      if (import.meta.env.DEV) {
+        console.warn('⚠️ No hay usuario disponible para eliminar datos');
+      }
       return false;
     }
     
@@ -89,7 +97,9 @@ export class DataManager {
       }
       
       localStorage.setItem(`${user.uid}_${collectionName}_modified`, new Date().toISOString());
-      console.log(`🗑️ Elemento eliminado en modo local: ${collectionName}/${docId}`);
+      if (import.meta.env.DEV) {
+        console.log(`🗑️ Elemento eliminado en modo local: ${collectionName}/${docId}`);
+      }
       return true;
     } else {
       // Modo Firebase
@@ -103,7 +113,9 @@ export class DataManager {
             timestamp: Date.now()
           });
           
-          console.log('📡 Sin conexión - eliminación agregada a cola de sincronización');
+          if (import.meta.env.DEV) {
+            console.log('📡 Sin conexión - eliminación agregada a cola de sincronización');
+          }
           return true;
         }
 
@@ -111,11 +123,15 @@ export class DataManager {
         const docRef = doc(db, `users/${user.uid}/${collectionName}`, docId);
         
         await deleteDoc(docRef);
-        console.log(`🗑️ Elemento eliminado de Firebase: ${collectionName}/${docId}`);
+        if (import.meta.env.DEV) {
+          console.log(`🗑️ Elemento eliminado de Firebase: ${collectionName}/${docId}`);
+        }
         return true;
         
       } catch (error) {
-        console.error(`❌ Error eliminando ${collectionName}/${docId} de Firebase:`, error);
+        if (import.meta.env.DEV) {
+          console.error(`❌ Error eliminando ${collectionName}/${docId} de Firebase:`, error);
+        }
         
         // Agregar a cola de sincronización como fallback
         this.addToSyncQueue({
@@ -135,7 +151,9 @@ export class DataManager {
     const user = getCurrentUser();
     
     if (!user || !user.uid) {
-      console.warn('⚠️ No hay usuario disponible para guardar datos');
+      if (import.meta.env.DEV) {
+        console.warn('⚠️ No hay usuario disponible para guardar datos');
+      }
       return false;
     }
     
@@ -154,7 +172,9 @@ export class DataManager {
       
       // Disparar listeners locales
       this.notifyListeners(collectionName, this.loadDataSync(collectionName));
-      console.log(`💾 Datos guardados en modo local: ${collectionName}`);
+      if (import.meta.env.DEV) {
+        console.log(`💾 Datos guardados en modo local: ${collectionName}`);
+      }
       return true;
     } else {
       // Modo Firebase con manejo de offline
@@ -171,7 +191,9 @@ export class DataManager {
             timestamp: Date.now()
           });
           
-          console.log('📡 Sin conexión - datos guardados localmente para sincronizar');
+          if (import.meta.env.DEV) {
+            console.log('📡 Sin conexión - datos guardados localmente para sincronizar');
+          }
           return true;
         }
 
@@ -189,7 +211,9 @@ export class DataManager {
           });
           
           await batch.commit();
-          console.log(`✅ ${collectionName} guardado en Firebase`);
+          if (import.meta.env.DEV) {
+            console.log(`✅ ${collectionName} guardado en Firebase`);
+          }
         } else {
           // Si es un objeto, guardar como documento único
           const id = docId || 'main';
@@ -197,7 +221,9 @@ export class DataManager {
             ...data, 
             lastModified: Date.now() 
           });
-          console.log(`✅ ${collectionName} guardado en Firebase`);
+          if (import.meta.env.DEV) {
+            console.log(`✅ ${collectionName} guardado en Firebase`);
+          }
         }
         
         // Limpiar backup local si existe
@@ -206,7 +232,9 @@ export class DataManager {
         
         return true;
       } catch (error) {
-        console.error(`❌ Error guardando ${collectionName} en Firebase:`, error);
+        if (import.meta.env.DEV) {
+          console.error(`❌ Error guardando ${collectionName} en Firebase:`, error);
+        }
         
         // Fallback a localStorage
         const backupKey = `${user.uid}_${collectionName}_backup`;
@@ -219,7 +247,9 @@ export class DataManager {
           timestamp: Date.now()
         });
         
-        console.log(`💾 ${collectionName} guardado localmente para sincronizar después`);
+        if (import.meta.env.DEV) {
+          console.log(`💾 ${collectionName} guardado localmente para sincronizar después`);
+        }
         return true; // Devolver true porque se guardó localmente
       }
     }
@@ -229,7 +259,9 @@ export class DataManager {
   loadDataSync(collectionName) {
     const user = getCurrentUser();
     if (!user || !user.uid) {
-      console.warn('⚠️ No hay usuario disponible para cargar datos');
+      if (import.meta.env.DEV) {
+        console.warn('⚠️ No hay usuario disponible para cargar datos');
+      }
       return null;
     }
     const key = `${user.uid}_${collectionName}`;
@@ -242,12 +274,16 @@ export class DataManager {
     const user = getCurrentUser();
     
     if (!user || !user.uid) {
-      console.warn('⚠️ No hay usuario disponible para cargar datos');
+      if (import.meta.env.DEV) {
+        console.warn('⚠️ No hay usuario disponible para cargar datos');
+      }
       return null;
     }
     
     if (isGuestMode) {
-      console.log(`📱 Cargando ${collectionName} en modo local`);
+      if (import.meta.env.DEV) {
+        console.log(`📱 Cargando ${collectionName} en modo local`);
+      }
       return this.loadDataSync(collectionName);
     } else {
       try {
@@ -269,15 +305,21 @@ export class DataManager {
             timestamp: Date.now()
           }));
           
-          console.log(`☁️ ${collectionName} cargado desde Firebase`);
+          if (import.meta.env.DEV) {
+            console.log(`☁️ ${collectionName} cargado desde Firebase`);
+          }
           return data;
         }
       } catch (error) {
-        console.warn(`⚠️ Error cargando ${collectionName} desde Firebase:`, error.message);
+        if (import.meta.env.DEV) {
+          console.warn(`⚠️ Error cargando ${collectionName} desde Firebase:`, error.message);
+        }
       }
       
       // Fallback a cache local
-      console.log(`📱 Usando cache local para ${collectionName}`);
+      if (import.meta.env.DEV) {
+        console.log(`📱 Usando cache local para ${collectionName}`);
+      }
       return this.loadFromCache(collectionName);
     }
   }
@@ -301,7 +343,9 @@ export class DataManager {
         return JSON.parse(backupData);
       }
     } catch (error) {
-      console.error('❌ Error cargando desde cache:', error);
+      if (import.meta.env.DEV) {
+        console.error('❌ Error cargando desde cache:', error);
+      }
     }
     
     return null;
@@ -312,7 +356,9 @@ export class DataManager {
     const user = getCurrentUser();
     
     if (!user || !user.uid) {
-      console.warn('⚠️ No hay usuario disponible para configurar listeners');
+      if (import.meta.env.DEV) {
+        console.warn('⚠️ No hay usuario disponible para configurar listeners');
+      }
       return;
     }
     
@@ -346,7 +392,9 @@ export class DataManager {
     const user = getCurrentUser();
     
     if (!user || !user.uid || !auth?.currentUser) {
-      console.log('⚠️ Usuario no autenticado en Firebase, usando modo local');
+      if (import.meta.env.DEV) {
+        console.log('⚠️ Usuario no autenticado en Firebase, usando modo local');
+      }
       return;
     }
     
@@ -372,12 +420,16 @@ export class DataManager {
             
             callback(data);
           } catch (error) {
-            console.error('Error procesando snapshot:', error);
+            if (import.meta.env.DEV) {
+              console.error('Error procesando snapshot:', error);
+            }
           }
         },
         (error) => {
           // Manejo silencioso de errores y fallback a datos locales
-          console.log(`💾 Usando datos locales para ${collectionName}`);
+          if (import.meta.env.DEV) {
+            console.log(`💾 Usando datos locales para ${collectionName}`);
+          }
           const cachedData = this.loadFromCache(collectionName);
           if (cachedData) {
             callback(cachedData);
@@ -390,7 +442,9 @@ export class DataManager {
         listener: unsubscribe 
       });
     } catch (error) {
-      console.error('❌ Error configurando listener de Firebase:', error);
+      if (import.meta.env.DEV) {
+        console.error('❌ Error configurando listener de Firebase:', error);
+      }
       
       // Fallback inmediato a datos locales
       const cachedData = this.loadFromCache(collectionName);
@@ -481,7 +535,9 @@ export class DataManager {
       ];
       
       await this.saveData('tasks', sampleTasks);
-      console.log('📝 Tareas de ejemplo creadas');
+      if (import.meta.env.DEV) {
+        console.log('📝 Tareas de ejemplo creadas');
+      }
     }
     
     if (!existingProjects || existingProjects.length === 0) {
@@ -496,7 +552,9 @@ export class DataManager {
       ];
       
       await this.saveData('projects', sampleProjects);
-      console.log('📂 Proyectos de ejemplo creados');
+      if (import.meta.env.DEV) {
+        console.log('📂 Proyectos de ejemplo creados');
+      }
     }
 
     // Configuración inicial del usuario
@@ -513,7 +571,9 @@ export class DataManager {
       };
       
       await this.saveData('user_config', defaultConfig);
-      console.log('⚙️ Configuración inicial creada');
+      if (import.meta.env.DEV) {
+        console.log('⚙️ Configuración inicial creada');
+      }
     }
   }
 
@@ -544,15 +604,21 @@ export class DataManager {
             await this.saveData(collection, data);
           }
           
-          console.log(`📦 Migrado ${collection} al usuario ${user.uid}`);
+          if (import.meta.env.DEV) {
+            console.log(`📦 Migrado ${collection} al usuario ${user.uid}`);
+          }
         } catch (error) {
-          console.error(`❌ Error migrando ${collection}:`, error);
+          if (import.meta.env.DEV) {
+            console.error(`❌ Error migrando ${collection}:`, error);
+          }
         }
       }
     }
 
     if (migrationCount > 0) {
-      console.log(`✅ Migración completada: ${migrationCount} colecciones`);
+      if (import.meta.env.DEV) {
+        console.log(`✅ Migración completada: ${migrationCount} colecciones`);
+      }
       // Marcar migración como completada
       localStorage.setItem(`${user.uid}_migration_completed`, new Date().toISOString());
     }
@@ -564,7 +630,9 @@ export class DataManager {
       // Verificar que hay un usuario disponible
       const user = getCurrentUser();
       if (!user || !user.uid) {
-        console.log('⏳ Esperando usuario para inicializar almacenamiento...');
+        if (import.meta.env.DEV) {
+          console.log('⏳ Esperando usuario para inicializar almacenamiento...');
+        }
         return false;
       }
       
@@ -588,10 +656,14 @@ export class DataManager {
         await this.processSyncQueue();
       }
       
-      console.log('✅ Sistema de almacenamiento inicializado');
+      if (import.meta.env.DEV) {
+        console.log('✅ Sistema de almacenamiento inicializado');
+      }
       return true;
     } catch (error) {
-      console.error('❌ Error inicializando sistema de almacenamiento:', error);
+      if (import.meta.env.DEV) {
+        console.error('❌ Error inicializando sistema de almacenamiento:', error);
+      }
       return false;
     }
   }
