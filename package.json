@@ -1,7 +1,8 @@
 {
   "name": "orionv1",
   "version": "1.0.0",
-  "description": "> “Organiza. Evoluciona. Expande tu universo.” ✨",
+  "type": "module",
+  "description": "Organiza. Evoluciona. Expande tu universo.",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
