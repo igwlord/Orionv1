@@ -179,6 +179,7 @@
             background-color: var(--accent-light);
         }
     </style>
+  <script type="module" crossorigin src="/assets/main-CLKqF04a.js"></script>
 </head>
 <body class="transition-colors duration-500 bg-theme">
     
@@ -200,6 +201,65 @@
                 Neptune Studios
             </a>
         </footer>
+    </div>
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="hidden h-screen w-screen flex flex-col items-center justify-center text-center p-4 bg-transparent transition-opacity duration-1000">
+        <div class="flex-grow flex flex-col items-center justify-center max-w-md w-full">
+            <!-- Logo/Título -->
+            <div class="mb-8">
+                <h1 class="text-4xl md:text-6xl font-bold text-white tracking-wider font-display mb-2">ORION</h1>
+                <p class="text-gray-300 text-lg">Elige cómo continuar</p>
+            </div>
+
+            <!-- Opciones de login -->
+            <div class="w-full space-y-4">
+                <!-- Botón de Google -->
+                <button id="google-signin-btn" class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-gray-800 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Continuar con Google
+                </button>
+
+                <!-- Separador -->
+                <div class="flex items-center gap-4 my-6">
+                    <div class="flex-1 h-px bg-gray-600"></div>
+                    <span class="text-gray-400 text-sm">o</span>
+                    <div class="flex-1 h-px bg-gray-600"></div>
+                </div>
+
+                <!-- Botón de invitado -->
+                <button id="guest-signin-btn" class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-theme-secondary/20 text-white font-semibold rounded-lg hover:bg-theme-secondary/30 transition-colors duration-300 border border-theme-secondary/40">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
+                    </svg>
+                    Continuar como Invitado
+                </button>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="mt-8 text-sm text-gray-400 space-y-2">
+                <p><strong>Con Google:</strong> Sincronización en la nube, acceso desde cualquier dispositivo</p>
+                <p><strong>Como Invitado:</strong> Datos guardados localmente en este dispositivo</p>
+            </div>
+
+            <!-- Botón de volver -->
+            <button id="back-to-welcome-btn" class="mt-6 text-gray-400 hover:text-white transition-colors underline">
+                ← Volver
+            </button>
+        </div>
+
+        <!-- Indicador de carga -->
+        <div id="login-loading" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div class="bg-theme-card p-6 rounded-lg flex items-center gap-3">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-theme-primary"></div>
+                <span class="text-white">Iniciando sesión...</span>
+            </div>
+        </div>
     </div>
 
     <!-- CONTENIDO PRINCIPAL DE LA APP -->
@@ -248,7 +308,13 @@
             
             <!-- DASHBOARD -->
             <section id="dashboard" class="app-section">
-                <h2 class="text-3xl font-bold mb-2">Hola, <span id="user-name"></span></h2>
+                <h2 class="text-3xl font-bold mb-2 flex items-center gap-3">
+                    Hola, <span id="user-name"></span>
+                    <div id="connection-status" class="flex items-center gap-1 text-sm font-normal">
+                        <div id="status-indicator" class="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span id="status-text" class="text-gray-500">En línea</span>
+                    </div>
+                </h2>
                 <p class="text-lg text-gray-400 mb-8">¿Qué vas a mejorar hoy?</p>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2 flex flex-col gap-8">
@@ -397,13 +463,14 @@
                     <!-- Datos -->
                     <div class="bg-theme-card p-4 rounded-lg">
                         <h3 class="font-bold mb-3">Gestión de Datos</h3>
-                        <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex flex-col md:flex-row gap-3 mb-3">
                             <button id="export-json-btn" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Guardar mis datos</button>
                             <label class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors text-center cursor-pointer">
                                 <span>Cargar mis datos</span>
                                 <input type="file" id="import-json-input" class="hidden" accept=".json">
                             </label>
                         </div>
+                        <button id="storage-stats-btn" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700 transition-colors">📊 Ver Estadísticas</button>
                     </div>
                      <!-- Zona de peligro -->
                     <div class="border-2 border-red-500/50 p-4 rounded-lg mt-8">
@@ -535,6 +602,7 @@
         </div>
     </div>
 
+
 
     <script>
     // =================================================================================
@@ -572,10 +640,17 @@
             starfieldCanvas: document.getElementById('starfield-canvas'),
             // Pantallas
             welcomeScreen: document.getElementById('welcome-screen'),
+            loginScreen: document.getElementById('login-screen'),
             mainApp: document.getElementById('main-app'),
             slogan: document.getElementById('slogan'),
             startBtn: document.getElementById('start-btn'),
             mainTitle: document.getElementById('main-title'),
+
+            // Login
+            googleSigninBtn: document.getElementById('google-signin-btn'),
+            guestSigninBtn: document.getElementById('guest-signin-btn'),
+            backToWelcomeBtn: document.getElementById('back-to-welcome-btn'),
+            loginLoading: document.getElementById('login-loading'),
     
             // Navegación
             navButtons: document.querySelectorAll('.nav-btn'),
@@ -589,6 +664,9 @@
     
             // Dashboard
             userName: document.getElementById('user-name'),
+            connectionStatus: document.getElementById('connection-status'),
+            statusIndicator: document.getElementById('status-indicator'),
+            statusText: document.getElementById('status-text'),
             todayTasksList: document.getElementById('today-tasks-list'),
             upcomingTasksList: document.getElementById('upcoming-tasks-list'),
             streakCount: document.getElementById('streak-count'),
@@ -619,6 +697,7 @@
             usernameInput: document.getElementById('username-input'),
             exportJsonBtn: document.getElementById('export-json-btn'),
             importJsonInput: document.getElementById('import-json-input'),
+            storageStatsBtn: document.getElementById('storage-stats-btn'),
             logoutBtn: document.getElementById('logout-btn'),
             deleteAllBtn: document.getElementById('delete-all-btn'),
     
@@ -681,7 +760,57 @@
         // C. LÓGICA DE DATOS (LocalStorage)
         // -----------------------------------------------------------------------------
         const DataService = {
-            load() {
+            async load() {
+                try {
+                    // Cargar configuración del usuario
+                    const userConfig = await window.dataManager.loadData('user_config');
+                    if (userConfig) {
+                        Object.assign(AppState.user, userConfig);
+                    }
+
+                    // Cargar tareas
+                    const tasks = await window.dataManager.loadData('tasks');
+                    if (tasks && Array.isArray(tasks)) {
+                        AppState.tasks = tasks;
+                    }
+
+                    // Cargar proyectos
+                    const projects = await window.dataManager.loadData('projects');
+                    if (projects && Array.isArray(projects)) {
+                        AppState.projects = projects;
+                    }
+
+                    console.log('✅ Datos cargados exitosamente');
+                } catch (error) {
+                    console.error('❌ Error cargando datos:', error);
+                    // Fallback al localStorage para compatibilidad
+                    this.loadFromLocalStorage();
+                }
+                
+                AppState.currentDate = new Date(); // Siempre resetear a la fecha actual al cargar
+            },
+
+            async save() {
+                try {
+                    // Guardar configuración del usuario
+                    await window.dataManager.saveData('user_config', AppState.user);
+                    
+                    // Guardar tareas
+                    await window.dataManager.saveData('tasks', AppState.tasks);
+                    
+                    // Guardar proyectos  
+                    await window.dataManager.saveData('projects', AppState.projects);
+                    
+                    console.log('✅ Datos guardados exitosamente');
+                } catch (error) {
+                    console.error('❌ Error guardando datos:', error);
+                    // Fallback al localStorage
+                    this.saveToLocalStorage();
+                }
+            },
+
+            // Métodos de fallback para compatibilidad
+            loadFromLocalStorage() {
                 const savedState = localStorage.getItem('orionAppState_v2');
                 if (savedState) {
                     try {
@@ -689,12 +818,12 @@
                         Object.assign(AppState, parsedState);
                     } catch(e) {
                         console.error("Failed to parse state from localStorage:", e);
-                        localStorage.removeItem('orionAppState_v2'); // Clear corrupted data
+                        localStorage.removeItem('orionAppState_v2');
                     }
                 }
-                AppState.currentDate = new Date(); // Siempre resetear a la fecha actual al cargar
             },
-            save() {
+
+            saveToLocalStorage() {
                 localStorage.setItem('orionAppState_v2', JSON.stringify(AppState));
             }
         };
@@ -708,7 +837,7 @@
                 DOM.userName.textContent = AppState.user.name || 'Usuario';
                 
                 const today = new Date().toDateString();
-                const tasksToday = AppState.tasks.filter(t => t.date && new Date(t.date).toDateString() === today);
+                const tasksToday = AppState.tasks.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === today);
                 
                 const upcomingDate = new Date();
                 upcomingDate.setDate(upcomingDate.getDate() + 5);
@@ -744,8 +873,8 @@
                 
                 const { search, projectId } = AppState.filters;
                 const filteredTasks = AppState.tasks.filter(task => {
-                    const matchesSearch = task.name.toLowerCase().includes(search.toLowerCase());
-                    const matchesProject = projectId === 'all' || task.projectId === projectId;
+                    const matchesSearch = task.title && task.title.toLowerCase().includes(search.toLowerCase());
+                    const matchesProject = projectId === 'all' || task.project === projectId || task.project === AppState.projects.find(p => p.id === projectId)?.name;
                     return matchesSearch && matchesProject;
                 });
     
@@ -767,7 +896,9 @@
                 } else {
                     filteredTasks.forEach(task => {
                         const taskCard = this.createTaskCard(task);
-                        columns[task.status]?.appendChild(taskCard);
+                        // Determinar status basado en el campo completed
+                        let status = task.completed ? 'completed' : (task.status || 'todo');
+                        columns[status]?.appendChild(taskCard);
                     });
     
                     Object.entries(columns).forEach(([status, col]) => {
@@ -867,8 +998,8 @@
                 }
 
                 AppState.projects.forEach(project => {
-                    const projectTasks = AppState.tasks.filter(t => t.projectId === project.id);
-                    const completedTasks = projectTasks.filter(t => t.status === 'completed').length;
+                    const projectTasks = AppState.tasks.filter(t => t.project === project.id || t.project === project.name);
+                    const completedTasks = projectTasks.filter(t => t.completed === true).length;
                     const totalTasks = projectTasks.length;
                     const percentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
@@ -904,11 +1035,11 @@
                 const style = priorityStyles[task.priority] || priorityStyles.medium;
                 card.classList.add(style.color);
     
-                const projectName = AppState.projects.find(p => p.id === task.projectId)?.name;
+                const projectName = AppState.projects.find(p => p.id === task.project || p.name === task.project)?.name || task.project;
     
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
-                        <p class="font-bold pr-2">${task.name}</p>
+                        <p class="font-bold pr-2">${task.title}</p>
                         <div class="flex-shrink-0 flex items-center space-x-2">
                             <i data-feather="${style.icon}" class="w-4 h-4 ${style.text}"></i>
                             <button class="edit-task-btn text-gray-400 hover:text-white"><i data-feather="edit-2" class="w-4 h-4"></i></button>
@@ -918,7 +1049,7 @@
                     <p class="text-sm text-gray-400 mt-2">${task.description || ''}</p>
                     <div class="flex justify-between items-center mt-3 text-xs">
                         ${projectName ? `<span class="bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full">${projectName}</span>` : '<span></span>'}
-                        ${task.date ? `<span class="text-gray-500 flex items-center"><i data-feather="calendar" class="w-3 h-3 mr-1"></i> ${new Date(task.date).toLocaleDateString()}</span>` : ''}
+                        ${task.dueDate ? `<span class="text-gray-500 flex items-center"><i data-feather="calendar" class="w-3 h-3 mr-1"></i> ${new Date(task.dueDate).toLocaleDateString()}</span>` : ''}
                     </div>
                 `;
                 return card;
@@ -941,8 +1072,8 @@
                 };
                 item.innerHTML = `
                     <div>
-                        <p class="font-semibold">${task.name}</p>
-                        <p class="text-xs text-gray-400">${new Date(task.date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}</p>
+                        <p class="font-semibold">${task.title}</p>
+                        <p class="text-xs text-gray-400">${task.dueDate ? new Date(task.dueDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' }) : 'Sin fecha'}</p>
                     </div>
                     <div class="w-2 h-2 rounded-full ${priorityStyles[task.priority] || 'bg-gray-500'}"></div>
                 `;
@@ -1098,18 +1229,23 @@
                         group: 'kanban',
                         animation: 150,
                         ghostClass: 'sortable-ghost',
-                        onEnd: (evt) => {
+                        onEnd: async (evt) => {
                             const taskId = evt.item.dataset.id;
                             const newStatus = evt.to.id.replace('-column', '');
                             const task = AppState.tasks.find(t => t.id === taskId);
                             if (task) {
                                 task.status = newStatus;
-                                if (newStatus === 'completed') {
+                                task.completed = (newStatus === 'completed');
+                                if (newStatus === 'completed' && !task.completedAt) {
+                                    task.completedAt = Date.now();
                                     this.updateStreak();
+                                } else if (newStatus !== 'completed') {
+                                    task.completedAt = null;
                                 }
-                                DataService.save();
+                                await DataService.save();
                                 UIManager.renderDashboard();
-                                UIManager.renderTasks();
+                                UIManager.renderProjectSummary();
+                                UIManager.renderCalendar();
                             }
                         }
                     });
@@ -1193,14 +1329,57 @@
     
             // -- Manejadores de eventos --
             setupEventListeners() {
-                // Navegación
+                // Navegación desde Welcome a Login
                 DOM.startBtn.addEventListener('click', () => {
                     DOM.welcomeScreen.classList.add('opacity-0');
                     setTimeout(() => {
                         DOM.welcomeScreen.classList.add('hidden');
-                        DOM.mainApp.classList.remove('hidden');
-                        setTimeout(() => DOM.mainApp.classList.remove('opacity-0'), 50);
+                        DOM.loginScreen.classList.remove('hidden');
+                        setTimeout(() => DOM.loginScreen.classList.remove('opacity-0'), 50);
                     }, 1000);
+                });
+
+                // Botón de volver desde Login a Welcome
+                DOM.backToWelcomeBtn.addEventListener('click', () => {
+                    DOM.loginScreen.classList.add('opacity-0');
+                    setTimeout(() => {
+                        DOM.loginScreen.classList.add('hidden');
+                        DOM.welcomeScreen.classList.remove('hidden');
+                        setTimeout(() => DOM.welcomeScreen.classList.remove('opacity-0'), 50);
+                    }, 1000);
+                });
+
+                // Iniciar sesión con Google
+                DOM.googleSigninBtn.addEventListener('click', async () => {
+                    DOM.loginLoading.classList.remove('hidden');
+                    
+                    try {
+                        const result = await window.authManager.signInWithGoogle();
+                        DOM.loginLoading.classList.add('hidden');
+                        
+                        if (result.success) {
+                            this.showNotification('¡Bienvenido! Sesión iniciada con Google', 'success');
+                            this.transitionToApp(result.user);
+                        } else {
+                            this.showNotification(result.error, 'error');
+                        }
+                    } catch (error) {
+                        DOM.loginLoading.classList.add('hidden');
+                        this.showNotification('Error al iniciar sesión', 'error');
+                        console.error('Error en login:', error);
+                    }
+                });
+
+                // Iniciar sesión como invitado
+                DOM.guestSigninBtn.addEventListener('click', () => {
+                    const result = window.authManager.signInAsGuest();
+                    
+                    if (result.success) {
+                        this.showNotification('¡Bienvenido! Modo invitado activado', 'success');
+                        this.transitionToApp(result.user);
+                    } else {
+                        this.showNotification('Error al iniciar modo invitado', 'error');
+                    }
                 });
     
                 const navigate = (sectionId) => {
@@ -1273,10 +1452,11 @@
                 });
     
                 // Configuración
-                DOM.themeToggle.addEventListener('change', () => { AppState.user.theme = DOM.themeToggle.checked ? 'dark' : 'light'; UIManager.applyTheme(); DataService.save(); });
-                DOM.usernameInput.addEventListener('change', () => { AppState.user.name = DOM.usernameInput.value; DataService.save(); UIManager.renderDashboard(); });
+                DOM.themeToggle.addEventListener('change', async () => { AppState.user.theme = DOM.themeToggle.checked ? 'dark' : 'light'; UIManager.applyTheme(); await DataService.save(); });
+                DOM.usernameInput.addEventListener('change', async () => { AppState.user.name = DOM.usernameInput.value; await DataService.save(); UIManager.renderDashboard(); });
                 DOM.exportJsonBtn.addEventListener('click', () => this.exportData());
                 DOM.importJsonInput.addEventListener('change', (e) => this.importData(e));
+                DOM.storageStatsBtn.addEventListener('click', () => this.showStorageStats());
                 DOM.deleteAllBtn.addEventListener('click', () => this.deleteAllData());
                 DOM.logoutBtn.addEventListener('click', () => this.logout());
     
@@ -1312,10 +1492,10 @@
                     modal.title.textContent = 'Editar Tarea';
                     modal.saveBtn.textContent = 'Guardar';
                     modal.idInput.value = task.id;
-                    modal.nameInput.value = task.name;
-                    modal.projectSelect.value = task.projectId || 'none';
+                    modal.nameInput.value = task.title;
+                    modal.projectSelect.value = task.project || 'none';
                     modal.descriptionInput.value = task.description;
-                    modal.dateInput.value = task.date ? task.date.split('T')[0] : '';
+                    modal.dateInput.value = task.dueDate || '';
                     modal.calendarCheckbox.checked = task.addToCalendar;
                     modal.form.querySelector(`input[name="priority"][value="${task.priority}"]`).checked = true;
                 } else {
@@ -1340,12 +1520,15 @@
                     const id = modal.idInput.value;
                     const taskData = {
                         id: id || `task-${Date.now()}`,
-                        name: modal.nameInput.value,
+                        title: modal.nameInput.value,
                         description: modal.descriptionInput.value,
-                        date: modal.dateInput.value ? new Date(modal.dateInput.value + 'T00:00:00').toISOString() : null,
+                        dueDate: modal.dateInput.value || null,
                         addToCalendar: modal.calendarCheckbox.checked,
-                        projectId: modal.projectSelect.value === 'none' ? null : modal.projectSelect.value,
+                        project: modal.projectSelect.value === 'none' ? null : modal.projectSelect.value,
                         priority: modal.form.querySelector('input[name="priority"]:checked').value,
+                        completed: false,
+                        createdAt: Date.now(),
+                        completedAt: null
                     };
     
                     if (id) {
@@ -1356,9 +1539,10 @@
                         AppState.tasks.push(taskData);
                     }
                     
-                    DataService.save();
+                    DataService.save().catch(console.error); // Guardar sin bloquear
                     UIManager.renderTasks();
                     UIManager.renderDashboard();
+                    UIManager.renderProjectSummary();
                     UIManager.renderCalendar();
                     this.updateNotificationIndicator();
                     UIManager.setButtonLoading(modal.saveBtn, false);
@@ -1375,11 +1559,17 @@
                 DOM.confirmModal.confirmBtn.parentNode.replaceChild(newConfirmBtn, DOM.confirmModal.confirmBtn);
                 DOM.confirmModal.confirmBtn = newConfirmBtn;
     
-                DOM.confirmModal.confirmBtn.addEventListener('click', () => {
+                DOM.confirmModal.confirmBtn.addEventListener('click', async () => {
+                    // Eliminar de AppState local
                     AppState.tasks = AppState.tasks.filter(t => t.id !== taskId);
-                    DataService.save();
+                    
+                    // Eliminar de Firebase/localStorage usando el nuevo método
+                    await window.dataManager.deleteData('tasks', taskId);
+                    
+                    // Actualizar UI
                     UIManager.renderTasks();
                     UIManager.renderDashboard();
+                    UIManager.renderProjectSummary();
                     UIManager.renderCalendar();
                     this.updateNotificationIndicator();
                     ModalManager.close(DOM.confirmModal);
@@ -1398,11 +1588,21 @@
                 DOM.confirmModal.confirmBtn.parentNode.replaceChild(newConfirmBtn, DOM.confirmModal.confirmBtn);
                 DOM.confirmModal.confirmBtn = newConfirmBtn;
     
-                DOM.confirmModal.confirmBtn.addEventListener('click', () => {
+                DOM.confirmModal.confirmBtn.addEventListener('click', async () => {
+                    // Eliminar de AppState local
                     AppState.projects = AppState.projects.filter(p => p.id !== projectId);
-                    AppState.tasks = AppState.tasks.filter(t => t.projectId !== projectId);
+                    const tasksToDelete = AppState.tasks.filter(t => t.project === projectId || t.project === project.name);
+                    AppState.tasks = AppState.tasks.filter(t => t.project !== projectId && t.project !== project.name);
                     
-                    DataService.save();
+                    // Eliminar proyecto de Firebase/localStorage
+                    await window.dataManager.deleteData('projects', projectId);
+                    
+                    // Eliminar tareas asociadas
+                    for (const task of tasksToDelete) {
+                        await window.dataManager.deleteData('tasks', task.id);
+                    }
+                    
+                    // Actualizar UI
                     this.renderInitialUI();
                     this.updateNotificationIndicator();
                     ModalManager.close(DOM.confirmModal);
@@ -1420,7 +1620,7 @@
                         name: modal.nameInput.value,
                     };
                     AppState.projects.push(newProject);
-                    DataService.save();
+                    DataService.save().catch(console.error);
                     UIManager.renderProjectFilters();
                     UIManager.renderProjectSummary();
                     UIManager.setButtonLoading(modal.saveBtn, false);
@@ -1435,14 +1635,14 @@
                 
                 modal.title.textContent = `Tareas para ${date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}`;
                 
-                const tasksForDay = AppState.tasks.filter(t => t.date && new Date(t.date).toDateString() === date.toDateString());
+                const tasksForDay = AppState.tasks.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === date.toDateString());
                 
                 modal.tasksContainer.innerHTML = '';
                 if (tasksForDay.length > 0) {
                     tasksForDay.forEach(task => {
                         const taskEl = document.createElement('div');
                         taskEl.className = 'bg-theme/50 p-3 rounded-md text-left';
-                        taskEl.textContent = task.name;
+                        taskEl.textContent = task.title;
                         modal.tasksContainer.appendChild(taskEl);
                     });
                 } else {
@@ -1453,13 +1653,241 @@
             },
     
             getHighestPriorityForDay(date) {
-                const tasksForDay = AppState.tasks.filter(t => t.date && new Date(t.date).toDateString() === date.toDateString());
+                const tasksForDay = AppState.tasks.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === date.toDateString());
                 if (tasksForDay.length === 0) return null;
                 if (tasksForDay.some(t => t.priority === 'high')) return 'high';
                 if (tasksForDay.some(t => t.priority === 'medium')) return 'medium';
                 return 'low';
             },
-    
+
+            // Transición desde login hacia la app principal
+            async transitionToApp(user) {
+                // Actualizar información del usuario
+                AppState.user.name = user.displayName || user.email || 'Usuario';
+                DOM.userName.textContent = AppState.user.name;
+                
+                // Actualizar estado de autenticación
+                AppState.user.isGuest = user.isGuest || false;
+                AppState.user.uid = user.uid;
+                
+                // Inicializar sistema de almacenamiento con usuario disponible
+                await window.dataManager.initialize();
+                
+                // Configurar listeners en tiempo real
+                this.setupRealtimeListeners();
+                
+                // Configurar listeners de conexión
+                this.setupConnectionListeners();
+                this.updateConnectionStatus();
+                
+                // Transición visual
+                DOM.loginScreen.classList.add('opacity-0');
+                setTimeout(() => {
+                    DOM.loginScreen.classList.add('hidden');
+                    DOM.mainApp.classList.remove('hidden');
+                    setTimeout(async () => {
+                        DOM.mainApp.classList.remove('opacity-0');
+                        await DataService.load(); // Cargar datos del usuario ANTES del renderizado
+                        UIManager.renderDashboard();
+                        UIManager.renderTasks();
+                        UIManager.renderCalendar();
+                    }, 50);
+                }, 1000);
+            },
+
+            // Configurar listeners en tiempo real para sincronización
+            setupRealtimeListeners() {
+                console.log('🔄 Configurando listeners en tiempo real...');
+                
+                // Listener para tareas
+                window.dataManager.listenToData('tasks', (tasks) => {
+                    if (tasks && Array.isArray(tasks)) {
+                        AppState.tasks = tasks;
+                        UIManager.renderTasks();
+                        UIManager.renderDashboard();
+                        UIManager.renderProjectSummary();
+                        UIManager.renderCalendar();
+                        console.log('📋 Tareas sincronizadas');
+                    }
+                });
+                
+                // Listener para proyectos
+                window.dataManager.listenToData('projects', (projects) => {
+                    if (projects && Array.isArray(projects)) {
+                        AppState.projects = projects;
+                        UIManager.renderProjectFilters();
+                        UIManager.renderProjectSummary();
+                        console.log('📁 Proyectos sincronizados');
+                    }
+                });
+                
+                // Listener para configuración de usuario
+                window.dataManager.listenToData('user_config', (userConfig) => {
+                    if (userConfig) {
+                        const oldTheme = AppState.user.theme;
+                        Object.assign(AppState.user, userConfig);
+                        
+                        // Actualizar UI si cambió el tema
+                        if (oldTheme !== AppState.user.theme) {
+                            UIManager.applyTheme();
+                        }
+                        
+                        // Actualizar nombre en dashboard
+                        DOM.userName.textContent = AppState.user.name || 'Usuario';
+                        console.log('⚙️ Configuración sincronizada');
+                    }
+                });
+                
+                console.log('✅ Listeners en tiempo real configurados');
+            },
+
+            // Configurar listeners de conexión
+            setupConnectionListeners() {
+                window.addEventListener('online', () => this.updateConnectionStatus());
+                window.addEventListener('offline', () => this.updateConnectionStatus());
+                
+                // Escuchar cambios en la cola de sincronización
+                if (window.dataManager?.on) {
+                    window.dataManager.on('syncQueueChange', () => this.updateConnectionStatus());
+                }
+                
+                console.log('🔗 Listeners de conexión configurados');
+            },
+
+            // Actualizar indicador de estado de conexión
+            updateConnectionStatus() {
+                const isOnline = navigator.onLine;
+                const isGuest = AppState.user.isGuest;
+                const syncQueue = window.dataManager?.syncQueue?.length || 0;
+                
+                if (isGuest) {
+                    DOM.statusIndicator.className = 'w-2 h-2 rounded-full bg-gray-500';
+                    DOM.statusText.textContent = 'Modo local';
+                } else if (!isOnline) {
+                    DOM.statusIndicator.className = 'w-2 h-2 rounded-full bg-red-500';
+                    DOM.statusText.textContent = 'Sin conexión';
+                } else if (syncQueue > 0) {
+                    DOM.statusIndicator.className = 'w-2 h-2 rounded-full bg-yellow-500 animate-pulse';
+                    DOM.statusText.textContent = 'Sincronizando...';
+                } else {
+                    DOM.statusIndicator.className = 'w-2 h-2 rounded-full bg-green-500';
+                    DOM.statusText.textContent = 'En línea';
+                }
+            },
+
+            // Sistema de notificaciones
+            showNotification(message, type = 'info', duration = 3000) {
+                // Crear elemento de notificación si no existe
+                let notification = document.getElementById('app-notification');
+                if (!notification) {
+                    notification = document.createElement('div');
+                    notification.id = 'app-notification';
+                    notification.className = 'fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300';
+                    document.body.appendChild(notification);
+                }
+
+                // Configurar estilos según el tipo
+                const typeStyles = {
+                    success: 'bg-green-600 text-white',
+                    error: 'bg-red-600 text-white',
+                    warning: 'bg-yellow-600 text-white',
+                    info: 'bg-blue-600 text-white'
+                };
+
+                notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-transform duration-300 ${typeStyles[type] || typeStyles.info}`;
+                notification.textContent = message;
+
+                // Mostrar notificación
+                setTimeout(() => {
+                    notification.classList.remove('translate-x-full');
+                }, 100);
+
+                // Ocultar notificación después del tiempo especificado
+                setTimeout(() => {
+                    notification.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, duration);
+            },
+
+            // Mostrar estadísticas de almacenamiento
+            showStorageStats() {
+                if (!window.dataManager) return;
+                
+                const stats = window.dataManager.getStorageStats();
+                const health = window.dataManager.getHealthCheck();
+                
+                const formatBytes = (bytes) => {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                };
+                
+                const statsModal = document.createElement('div');
+                statsModal.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+                statsModal.innerHTML = `
+                    <div class="bg-theme-card rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-purple-400">Estadísticas de Almacenamiento</h3>
+                            <button id="close-stats" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div class="bg-theme/30 p-4 rounded-lg">
+                                <h4 class="font-semibold text-purple-300 mb-2">Estado General</h4>
+                                <p><span class="text-gray-400">Modo:</span> ${stats.mode === 'local' ? 'Local' : 'Nube'}</p>
+                                <p><span class="text-gray-400">Conexión:</span> ${stats.isOnline ? 'En línea' : 'Sin conexión'}</p>
+                                <p><span class="text-gray-400">Cola de sincronización:</span> ${stats.syncQueueSize} elementos</p>
+                                <p><span class="text-gray-400">Última sincronización:</span> ${stats.lastSync}</p>
+                            </div>
+                            
+                            <div class="bg-theme/30 p-4 rounded-lg">
+                                <h4 class="font-semibold text-purple-300 mb-2">Uso de Almacenamiento</h4>
+                                <p><span class="text-gray-400">Total de elementos:</span> ${stats.totalItems}</p>
+                                <p><span class="text-gray-400">Espacio local usado:</span> ${formatBytes(stats.localStorageUsage)}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-purple-300 mb-3">Colecciones</h4>
+                            ${Object.entries(stats.collections).map(([name, data]) => `
+                                <div class="bg-theme/20 p-3 rounded mb-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-medium">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
+                                        <span class="text-sm text-gray-400">${data.itemCount} elementos</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        Tamaño: ${formatBytes(data.sizeBytes)}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="text-xs text-gray-500">
+                            <p>Actualizado: ${new Date().toLocaleString()}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(statsModal);
+                
+                // Cerrar modal
+                document.getElementById('close-stats').onclick = () => {
+                    statsModal.remove();
+                };
+                
+                statsModal.onclick = (e) => {
+                    if (e.target === statsModal) {
+                        statsModal.remove();
+                    }
+                };
+            },
+
             exportData() {
                 const now = new Date();
                 const pad = (num) => num.toString().padStart(2, '0');
@@ -1487,7 +1915,7 @@
                         if (importedState && typeof importedState.user === 'object' && Array.isArray(importedState.tasks) && Array.isArray(importedState.projects) && typeof importedState.filters === 'object') {
                             Object.assign(AppState, importedState);
                             AppState.currentDate = new Date(); // Resetear siempre la fecha actual
-                            DataService.save();
+                            DataService.save().catch(console.error);
                             this.renderInitialUI();
                             this.openInfoModal({ title: 'Éxito', message: '¡Datos importados correctamente!', type: 'success' });
                         } else {
@@ -1516,7 +1944,7 @@
                 }, { once: true });
             },
     
-            logout() {
+            async logout() {
                 ModalManager.open(DOM.confirmModal);
                 DOM.confirmModal.title.textContent = 'Cerrar Sesión';
                 DOM.confirmModal.message.textContent = 'Esto te redirigirá a la pantalla de bienvenida. Tus datos se guardarán.';
@@ -1525,8 +1953,14 @@
                 DOM.confirmModal.confirmBtn.parentNode.replaceChild(newConfirmBtn, DOM.confirmModal.confirmBtn);
                 DOM.confirmModal.confirmBtn = newConfirmBtn;
     
-                DOM.confirmModal.confirmBtn.addEventListener('click', () => {
-                    window.location.reload();
+                DOM.confirmModal.confirmBtn.addEventListener('click', async () => {
+                    try {
+                        await window.authManager.signOut();
+                        window.location.reload();
+                    } catch (error) {
+                        console.error('Error al cerrar sesión:', error);
+                        window.location.reload();
+                    }
                 }, { once: true });
             },
 
@@ -1568,7 +2002,7 @@
 
             updateNotificationIndicator(show = true) {
                 const today = new Date().toDateString();
-                const tasksToday = AppState.tasks.filter(t => t.date && new Date(t.date).toDateString() === today && t.status !== 'completed');
+                const tasksToday = AppState.tasks.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === today && !t.completed);
                 
                 const shouldShow = show && tasksToday.length > 0;
 
