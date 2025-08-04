@@ -1,6 +1,6 @@
 [build]
   base = "."
-  command = "echo 'Static deployment - no build required'"
+  command = "npm run build-production"
   publish = "."
 
 [build.environment]

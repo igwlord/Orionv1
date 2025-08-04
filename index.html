@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ORION - Organiza. Evoluciona. Expande tu universo.</title>
+    
+    <!-- Configuración de producción (solo se carga en producción) -->
+    <script src="/public/config.js"></script>
+    
     <!-- Favicon - Versión completa para PWA -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -13,9 +17,11 @@
     <!-- Resource Hints para optimización -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Tailwind CSS compilado -->
+    <link rel="stylesheet" href="/public/output.css">
     
     <!-- Critical CSS inlined para fastest rendering -->
     <style>
@@ -26,9 +32,6 @@
         body { font-family: Inter, system-ui, sans-serif; }
         .bg-theme { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     </style>
-    
-    <!-- Tailwind CSS - Solo en desarrollo, en producción usar build optimizado -->
-    <script src="https://cdn.tailwindcss.com" defer></script>
     
     <!-- Import map para Firebase -->
     <script type="importmap">

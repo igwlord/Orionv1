@@ -10,10 +10,18 @@ let isGuestMode = false;
 console.log('🔧 Inicializando Firebase...');
 console.log('🔧 Modo de la app:', appMode);
 
-// Inicialización de Firebase basada en el appMode
-if (appMode === 'firebase') {
+// Verificar si tenemos configuración válida de Firebase
+const hasValidConfig = firebaseConfig.apiKey && 
+                      firebaseConfig.projectId && 
+                      firebaseConfig.apiKey !== 'demo-api-key' &&
+                      !firebaseConfig.apiKey.includes('demo');
+
+console.log('🔧 Configuración Firebase válida:', hasValidConfig);
+
+// Inicialización de Firebase basada en el appMode y configuración válida
+if (appMode === 'firebase' && hasValidConfig) {
   try {
-    console.log('🔥 Inicializando Firebase con configuración:', {
+    console.log('🔥 Inicializando Firebase con configuración real:', {
       projectId: firebaseConfig.projectId,
       authDomain: firebaseConfig.authDomain
     });
@@ -30,7 +38,11 @@ if (appMode === 'firebase') {
   }
 } else {
   isGuestMode = true;
-  console.log('👤 Modo invitado activado');
+  if (appMode === 'firebase' && !hasValidConfig) {
+    console.log('👤 Modo invitado activado - Firebase no configurado correctamente en producción');
+  } else {
+    console.log('👤 Modo invitado activado');
+  }
 }
 
 export { db, auth, isGuestMode };
