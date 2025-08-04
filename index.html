@@ -935,19 +935,506 @@
             </div>
         </div>
 
-        <!-- Modal para Tareas del Calendario -->
-        <div id="calendar-day-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-theme-card rounded-lg shadow-2xl p-8 w-full max-w-md transform transition-all opacity-0 -translate-y-10" role="dialog" aria-modal="true">
-                <h3 id="calendar-day-title" class="text-2xl font-bold mb-6">Tareas del día</h3>
-                <div id="calendar-day-tasks" class="space-y-3 max-h-64 overflow-y-auto">
-                    <!-- Las tareas del día se insertarán aquí -->
+        <!-- Modal Simple para Tareas del Calendario (Móvil) -->
+        <div id="calendar-day-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50">
+            <!-- Versión Móvil -->
+            <div class="mobile-calendar-modal md:hidden w-full h-full flex flex-col">
+                <!-- Header -->
+                <div class="bg-theme-card p-4 border-b border-theme">
+                    <div class="flex items-center justify-between">
+                        <h3 id="mobile-calendar-title" class="text-lg font-bold text-theme-primary">
+                            <!-- Fecha se actualizará aquí -->
+                        </h3>
+                        <button type="button" id="close-mobile-calendar" class="p-2 rounded-full hover:bg-theme/10">
+                            <i data-feather="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
                 </div>
-                 <div class="mt-6 flex justify-between items-center">
-                    <button type="button" id="add-task-from-calendar-btn" class="px-4 py-2 bg-theme-secondary text-white rounded-md font-semibold">Añadir Tarea</button>
-                    <button type="button" id="close-calendar-day-btn" class="px-6 py-2 bg-theme-primary text-white rounded-md font-semibold">Cerrar</button>
+                
+                <!-- Contenido -->
+                <div class="flex-1 bg-theme-card p-4 overflow-y-auto">
+                    <div id="mobile-calendar-tasks">
+                        <!-- Las tareas se mostrarán aquí -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Versión Desktop (Modal centrado tradicional) -->
+            <div class="desktop-calendar-modal hidden md:flex items-center justify-center p-4 w-full h-full">
+                <div class="bg-theme-card rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between p-6 border-b border-theme">
+                        <button type="button" id="prev-day-btn" class="p-2 rounded-full hover:bg-theme/10">
+                            <i data-feather="chevron-left" class="w-5 h-5"></i>
+                        </button>
+                        <div id="desktop-calendar-title" class="flex-1 text-center">
+                            <!-- Fecha se actualizará aquí -->
+                        </div>
+                        <button type="button" id="next-day-btn" class="p-2 rounded-full hover:bg-theme/10">
+                            <i data-feather="chevron-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Contenido -->
+                    <div class="p-6 flex-1 overflow-hidden">
+                        <div id="desktop-calendar-tasks" class="space-y-3 max-h-full overflow-y-auto">
+                            <!-- Las tareas se mostrarán aquí -->
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="flex justify-between items-center p-6 border-t border-theme">
+                        <button type="button" id="add-task-from-calendar-btn" class="px-4 py-2 bg-theme-primary text-white rounded-lg">
+                            <i data-feather="plus" class="w-4 h-4 inline mr-2"></i>
+                            Añadir Tarea
+                        </button>
+                        <button type="button" id="close-desktop-calendar" class="px-4 py-2 bg-gray-500 text-white rounded-lg">
+                            Cerrar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Estilos CSS para mejores animaciones -->
+        <style>
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: rgba(156, 163, 175, 0.3);
+                border-radius: 3px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: rgba(156, 163, 175, 0.5);
+            }
+            
+            /* Animación de entrada para las tareas */
+            @keyframes slideInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .task-card-animate {
+                animation: slideInUp 0.3s ease-out forwards;
+            }
+            
+            /* Efectos hover mejorados */
+            .hover-lift:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+            
+            /* Pulso para indicadores */
+            @keyframes pulse-glow {
+                0%, 100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.8;
+                    transform: scale(1.1);
+                }
+            }
+            
+            .pulse-glow {
+                animation: pulse-glow 2s infinite;
+            }
+            
+            /* ✨ FASE 2: Animaciones y micro-interacciones mejoradas */
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+            
+            .animate-fade-in {
+                animation: fadeIn 0.3s ease-in forwards;
+            }
+            
+            /* Estilos para el header de fecha del modal de calendario */
+            #calendar-day-title {
+                transition: all 0.3s ease;
+            }
+            
+            /* Modo claro - Colores naranjas */
+            #calendar-day-title .text-3xl {
+                background: linear-gradient(135deg, #ea580c, #f97316);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                font-weight: 900;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                line-height: 1;
+            }
+            
+            #calendar-day-title .text-lg {
+                color: #9a3412;
+                letter-spacing: 0.1em;
+                font-weight: 700;
+            }
+            
+            #calendar-day-title .text-xs {
+                color: #7c2d12;
+                margin-top: 4px;
+                font-weight: 500;
+            }
+            
+            /* Modo oscuro - Colores magenta */
+            .dark #calendar-day-title .text-3xl {
+                background: linear-gradient(135deg, #d946ef, #a855f7);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            
+            .dark #calendar-day-title .text-lg {
+                color: #c084fc;
+                font-weight: 700;
+            }
+            
+            .dark #calendar-day-title .text-xs {
+                color: #a78bfa;
+                font-weight: 500;
+            }
+            
+            /* Mejoras de legibilidad para el modal de calendario */
+            #calendar-day-modal .bg-theme-card {
+                background-color: #ffffff;
+                border: 1px solid #e5e7eb;
+            }
+            
+            .dark #calendar-day-modal .bg-theme-card {
+                background-color: #1f2937;
+                border: 1px solid #374151;
+            }
+            
+            /* Forzar colores específicos en el modal del calendario */
+            #calendar-day-modal .text-violet-800 {
+                color: #5b21b6 !important;
+            }
+            
+            #calendar-day-modal .text-blue-900 {
+                color: #1e3a8a !important;
+            }
+            
+            #calendar-day-modal .text-violet-700 {
+                color: #6d28d9 !important;
+            }
+            
+            #calendar-day-modal .text-blue-800 {
+                color: #1e40af !important;
+            }
+            
+            #calendar-day-modal .text-violet-900 {
+                color: #4c1d95 !important;
+            }
+            
+            /* Estilos más específicos para elementos del modal */
+            #calendar-day-modal h4 {
+                color: #1e3a8a !important;
+            }
+            
+            #calendar-day-modal p {
+                color: #6d28d9 !important;
+            }
+            
+            #calendar-day-modal .text-xs {
+                color: #1e40af !important;
+            }
+            
+            #calendar-day-modal .text-sm {
+                color: #5b21b6 !important;
+            }
+            
+            /* Forzar colores en modo oscuro */
+            .dark #calendar-day-modal .text-violet-800,
+            .dark #calendar-day-modal .text-blue-900,
+            .dark #calendar-day-modal .text-violet-700,
+            .dark #calendar-day-modal .text-blue-800,
+            .dark #calendar-day-modal .text-violet-900,
+            .dark #calendar-day-modal h4,
+            .dark #calendar-day-modal p,
+            .dark #calendar-day-modal .text-xs,
+            .dark #calendar-day-modal .text-sm {
+                color: #e2e8f0 !important;
+            }
+            
+            /* ✨ FASE 3: Optimizaciones específicas para móvil */
+            
+            /* Scrollbar móvil mejorada */
+            @media (max-width: 768px) {
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
+                }
+                
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(156, 163, 175, 0.5);
+                    border-radius: 2px;
+                }
+                
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+            }
+            
+            /* Touch-friendly interactions */
+            .touch-action-manipulation {
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            /* Mejoras de performance móvil */
+            @media (max-width: 768px) {
+                .task-card-animate {
+                    animation-duration: 0.2s;
+                }
+                
+                .hover-lift {
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                }
+                
+                /* Optimizar animaciones para móvil */
+                * {
+                    -webkit-backface-visibility: hidden;
+                    backface-visibility: hidden;
+                    -webkit-perspective: 1000px;
+                    perspective: 1000px;
+                }
+            }
+            
+            /* Feedback visual para touch */
+            @media (max-width: 768px) {
+                button:active {
+                    transform: scale(0.95);
+                    opacity: 0.8;
+                }
+                
+                .task-card:active {
+                    transform: scale(0.98);
+                }
+            }
+            
+            /* Espaciado mejorado para thumbs */
+            @media (max-width: 640px) {
+                #calendar-day-modal .flex-col button,
+                #calendar-day-modal .flex-row button {
+                    min-height: 44px;
+                    min-width: 44px;
+                }
+            }
+            
+            /* Truncate text utilities para móvil */
+            .line-clamp-2 {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            
+            /* Prevenir zoom en inputs en iOS */
+            @media screen and (max-width: 768px) {
+                input[type="text"],
+                input[type="email"],
+                input[type="password"],
+                textarea,
+                select {
+                    font-size: 16px !important;
+                }
+            }
+            
+            /* Estilos para swipe indicators */
+            .swipe-indicator {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 3px;
+                height: 30px;
+                background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.7), transparent);
+                border-radius: 2px;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                z-index: 10;
+            }
+            
+            .swipe-indicator.left {
+                left: 10px;
+            }
+            
+            .swipe-indicator.right {
+                right: 10px;
+            }
+            
+            .swipe-indicator.active {
+                opacity: 1;
+                animation: swipePulse 1.5s infinite;
+            }
+            
+            @keyframes swipePulse {
+                0%, 100% { opacity: 0.5; transform: translateY(-50%) scale(1); }
+                50% { opacity: 1; transform: translateY(-50%) scale(1.1); }
+            }
+            
+            /* Soporte para reduced motion */
+            @media (prefers-reduced-motion: reduce) {
+                .reduced-motion *,
+                .reduced-motion *::before,
+                .reduced-motion *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                    scroll-behavior: auto !important;
+                }
+            }
+            
+            /* Loading states optimizados para móvil */
+            .mobile-loading {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .mobile-loading::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+                animation: shimmer 1.5s infinite;
+            }
+            
+            @keyframes shimmer {
+                0% { left: -100%; }
+                100% { left: 100%; }
+            }
+            
+            /* Mejorar rendimiento de scroll en móvil */
+            #calendar-day-tasks {
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
+            }
+            
+            /* Estilos simples para el modal del calendario */
+            .mobile-calendar-modal {
+                background: rgba(17, 24, 39, 0.95);
+            }
+            
+            .desktop-calendar-modal .bg-theme-card {
+                background-color: #ffffff;
+                border: 1px solid #e5e7eb;
+            }
+            
+            .dark .desktop-calendar-modal .bg-theme-card {
+                background-color: #1f2937;
+                border: 1px solid #374151;
+            }
+            
+            /* Estilos para las tareas en el modal */
+            .calendar-task-item {
+                padding: 0.75rem;
+                border-radius: 0.5rem;
+                border-left: 3px solid #3b82f6;
+                background: rgba(59, 130, 246, 0.1);
+                margin-bottom: 0.5rem;
+            }
+            
+            .calendar-task-item.completed {
+                opacity: 0.6;
+                border-left-color: #10b981;
+                background: rgba(16, 185, 129, 0.1);
+            }
+            
+            .calendar-task-item.high-priority {
+                border-left-color: #ef4444;
+                background: rgba(239, 68, 68, 0.1);
+            }
+            
+            .calendar-task-item.medium-priority {
+                border-left-color: #f59e0b;
+                background: rgba(245, 158, 11, 0.1);
+            }
+            
+            .calendar-task-item.low-priority {
+                border-left-color: #10b981;
+                background: rgba(16, 185, 129, 0.1);
+            }
+            
+            /* Animaciones de botones mejoradas */
+            .calendar-modal button {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .calendar-modal button::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                transition: width 0.3s, height 0.3s;
+            }
+            
+            .calendar-modal button:active::before {
+                width: 100px;
+                height: 100px;
+            }
+            
+            /* Modal de calendario con animación de entrada mejorada */
+            .calendar-modal .modal-content {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            
+            /* Rotaciones para botones de acción */
+            .rotate-on-hover:hover {
+                transform: rotate(10deg) scale(1.1);
+            }
+            
+            /* Mejoras visuales para tareas completadas */
+            .task-completed {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .task-completed::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.2), transparent);
+                animation: shine 1.5s ease-in-out;
+            }
+            
+            @keyframes shine {
+                0% {
+                    left: -100%;
+                }
+                100% {
+                    left: 100%;
+                }
+            }
+        </style>
         
         <!-- Modal de Acciones para Mobile (3 puntos) -->
         <div id="mobile-task-actions-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center p-4">
@@ -1344,11 +1831,15 @@
             // Modal de día del calendario
             calendarDayModal: {
                 el: document.getElementById('calendar-day-modal'),
-                content: document.getElementById('calendar-day-modal').querySelector('[role="dialog"]'),
-                title: document.getElementById('calendar-day-title'),
-                tasksContainer: document.getElementById('calendar-day-tasks'),
-                closeBtn: document.getElementById('close-calendar-day-btn'),
+                mobileTitle: document.getElementById('mobile-calendar-title'),
+                desktopTitle: document.getElementById('desktop-calendar-title'),
+                mobileTasks: document.getElementById('mobile-calendar-tasks'),
+                desktopTasks: document.getElementById('desktop-calendar-tasks'),
+                closeMobile: document.getElementById('close-mobile-calendar'),
+                closeDesktop: document.getElementById('close-desktop-calendar'),
                 addTaskBtn: document.getElementById('add-task-from-calendar-btn'),
+                prevDayBtn: document.getElementById('prev-day-btn'),
+                nextDayBtn: document.getElementById('next-day-btn'),
             },
             // Modal de Confirmación
             confirmModal: {
@@ -1660,18 +2151,162 @@
                         dayNumber.classList.add('border-2', 'border-theme-primary');
                     }
     
-                    // Indicador de prioridad
-                    const highestPriority = App.getHighestPriorityForDay(cellDate);
-                    if (highestPriority) {
-                        const priorityColors = { high: 'bg-red-500', medium: 'bg-yellow-500', low: 'bg-green-500' };
+                    // ✨ FASE 2: Indicadores avanzados y tooltips
+                    const dayInfo = App.getDayInfo(cellDate);
+                    if (dayInfo.hasTasksToday) {
+                        const priorityColors = { 
+                            high: { bg: 'bg-red-500', border: 'border-red-300', text: 'text-red-600' }, 
+                            medium: { bg: 'bg-yellow-500', border: 'border-yellow-300', text: 'text-yellow-600' }, 
+                            low: { bg: 'bg-green-500', border: 'border-green-300', text: 'text-green-600' }
+                        };
+                        
+                        const colors = priorityColors[dayInfo.highestPriority];
+                        
+                        // Indicador principal de prioridad con efecto
                         const dot = document.createElement('div');
-                        dot.className = `absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full ${priorityColors[highestPriority]}`;
+                        dot.className = `absolute bottom-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full ${colors.bg} animate-pulse`;
                         dayCell.appendChild(dot);
+                        
+                        // Contador de tareas con mejor diseño
+                        if (dayInfo.total > 1) {
+                            const counter = document.createElement('div');
+                            counter.className = `absolute -top-1 -right-1 min-w-5 h-5 ${colors.bg} text-white text-xs font-bold rounded-full flex items-center justify-center shadow-md border-2 border-white`;
+                            counter.textContent = dayInfo.total > 99 ? '99+' : dayInfo.total;
+                            dayCell.appendChild(counter);
+                        }
+                        
+                        // Barra de progreso mejorada
+                        if (dayInfo.completed > 0) {
+                            const progressContainer = document.createElement('div');
+                            progressContainer.className = 'absolute bottom-0 left-0 w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-b-lg overflow-hidden';
+                            
+                            const progressBar = document.createElement('div');
+                            progressBar.className = 'h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-300';
+                            progressBar.style.width = `${(dayInfo.completed / dayInfo.total) * 100}%`;
+                            
+                            progressContainer.appendChild(progressBar);
+                            dayCell.appendChild(progressContainer);
+                        }
+                        
+                        // ✨ NUEVO: Tooltip informativo
+                        const tooltip = this.createDayTooltip(dayInfo, cellDate);
+                        dayCell.appendChild(tooltip);
+                        
+                        // Añadir efectos hover
+                        dayCell.classList.add('hover:scale-105', 'transition-transform', 'duration-200');
                     }
                     
                     grid.appendChild(dayCell);
                 }
                 IconUtils.safeFeatherReplace();
+                
+                // ✨ FASE 2: Configurar tooltips después del renderizado
+                this.setupCalendarTooltips();
+            },
+
+            // ✨ FASE 2: Crear tooltip informativo para días
+            createDayTooltip(dayInfo, date) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'day-tooltip absolute z-50 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-lg opacity-0 pointer-events-none transition-all duration-200 transform -translate-y-2 min-w-48';
+                tooltip.style.bottom = '100%';
+                tooltip.style.left = '50%';
+                tooltip.style.transform = 'translateX(-50%) translateY(-8px)';
+                
+                const dateStr = date.toLocaleDateString('es-ES', { 
+                    weekday: 'long', 
+                    day: 'numeric', 
+                    month: 'long' 
+                });
+                
+                // Crear vista previa de tareas
+                const taskPreviews = dayInfo.tasks.slice(0, 3).map(task => {
+                    const priorityIcon = task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢';
+                    const statusIcon = task.completed ? '✅' : task.status === 'doing' ? '⏳' : '⭕';
+                    return `${priorityIcon}${statusIcon} ${task.title.length > 20 ? task.title.slice(0, 20) + '...' : task.title}`;
+                }).join('<br>');
+                
+                const moreTasksText = dayInfo.total > 3 ? `<br><span class="text-gray-400">+${dayInfo.total - 3} tareas más...</span>` : '';
+                
+                tooltip.innerHTML = `
+                    <div class="font-semibold mb-2">${dateStr}</div>
+                    <div class="mb-2">
+                        <span class="text-blue-300">${dayInfo.total}</span> tarea${dayInfo.total > 1 ? 's' : ''} •
+                        <span class="text-green-300">${dayInfo.completed}</span> completada${dayInfo.completed !== 1 ? 's' : ''} •
+                        <span class="text-orange-300">${dayInfo.pending}</span> pendiente${dayInfo.pending !== 1 ? 's' : ''}
+                    </div>
+                    ${dayInfo.total > 0 ? `
+                        <div class="border-t border-gray-700 pt-2 text-xs">
+                            ${taskPreviews}
+                            ${moreTasksText}
+                        </div>
+                        <div class="text-center mt-2 text-gray-400 text-xs">
+                            Click para ver detalles
+                        </div>
+                    ` : ''}
+                `;
+                
+                // Flecha del tooltip
+                const arrow = document.createElement('div');
+                arrow.className = 'absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900';
+                tooltip.appendChild(arrow);
+                
+                return tooltip;
+            },
+
+            // ✨ FASE 2: Configurar tooltips hover
+            setupCalendarTooltips() {
+                const calendarGrid = DOM.calendarGrid;
+                let currentTooltip = null;
+                let hoverTimeout = null;
+                
+                calendarGrid.addEventListener('mouseenter', (e) => {
+                    const dayCell = e.target.closest('[data-date]');
+                    if (!dayCell) return;
+                    
+                    const tooltip = dayCell.querySelector('.day-tooltip');
+                    if (!tooltip) return;
+                    
+                    // Limpiar timeout anterior
+                    if (hoverTimeout) {
+                        clearTimeout(hoverTimeout);
+                    }
+                    
+                    // Ocultar tooltip anterior
+                    if (currentTooltip && currentTooltip !== tooltip) {
+                        currentTooltip.style.opacity = '0';
+                        currentTooltip.style.pointerEvents = 'none';
+                    }
+                    
+                    // Mostrar nuevo tooltip con delay
+                    hoverTimeout = setTimeout(() => {
+                        tooltip.style.opacity = '1';
+                        tooltip.style.pointerEvents = 'auto';
+                        currentTooltip = tooltip;
+                    }, 500); // Delay de 500ms
+                    
+                }, true);
+                
+                calendarGrid.addEventListener('mouseleave', (e) => {
+                    const dayCell = e.target.closest('[data-date]');
+                    if (!dayCell) return;
+                    
+                    const tooltip = dayCell.querySelector('.day-tooltip');
+                    if (!tooltip) return;
+                    
+                    // Limpiar timeout si existe
+                    if (hoverTimeout) {
+                        clearTimeout(hoverTimeout);
+                        hoverTimeout = null;
+                    }
+                    
+                    // Ocultar tooltip
+                    tooltip.style.opacity = '0';
+                    tooltip.style.pointerEvents = 'none';
+                    
+                    if (currentTooltip === tooltip) {
+                        currentTooltip = null;
+                    }
+                }, true);
             },
     
             renderSettings() {
@@ -2413,11 +3048,8 @@
                     const dayCell = e.target.closest('[data-date]');
                     if (!dayCell) return;
 
-                    if (e.target.classList.contains('day-number')) {
-                        this.openCalendarDayModal(dayCell.dataset.date);
-                    } else {
-                        this.openTaskModal(null, dayCell.dataset.date);
-                    }
+                    // Siempre abrir el modal del calendario con las tareas del día
+                    this.openCalendarDayModal(dayCell.dataset.date);
                 });
     
                 // Kaizen
@@ -2437,14 +3069,33 @@
                 DOM.deleteAllBtn.addEventListener('click', () => this.deleteAllData());
                 DOM.logoutBtn.addEventListener('click', () => this.logout());
     
+                // Initialize mobile optimizations
+                this.setupMobileOptimizations();
+    
                 // Modales
                 DOM.taskModal.cancelBtn.addEventListener('click', () => ModalManager.close(DOM.taskModal));
                 DOM.projectModal.cancelBtn.addEventListener('click', () => ModalManager.close(DOM.projectModal));
-                DOM.calendarDayModal.closeBtn.addEventListener('click', () => ModalManager.close(DOM.calendarDayModal));
+                // Modales de calendario - botones de cerrar
+                DOM.calendarDayModal.closeMobile.addEventListener('click', () => this.closeCalendarModal());
+                DOM.calendarDayModal.closeDesktop.addEventListener('click', () => this.closeCalendarModal());
                 DOM.calendarDayModal.addTaskBtn.addEventListener('click', () => {
-                    ModalManager.close(DOM.calendarDayModal);
+                    this.closeCalendarModal();
                     this.openTaskModal(null, AppState.selectedCalendarDate);
                 });
+                DOM.calendarDayModal.prevDayBtn.addEventListener('click', () => {
+                    this.navigateCalendarDay(-1);
+                });
+                DOM.calendarDayModal.nextDayBtn.addEventListener('click', () => {
+                    this.navigateCalendarDay(1);
+                });
+                
+                // Close calendar modal on backdrop click
+                DOM.calendarDayModal.el.addEventListener('click', (e) => {
+                    if (e.target === DOM.calendarDayModal.el) {
+                        this.closeCalendarModal();
+                    }
+                });
+                
                 DOM.confirmModal.cancelBtn.addEventListener('click', () => ModalManager.close(DOM.confirmModal));
                 DOM.infoModal.closeBtn.addEventListener('click', () => ModalManager.close(DOM.infoModal));
             },
@@ -2520,6 +3171,10 @@
                         Logger.error(error);
                     }
                 }); // Guardar sin bloquear
+                
+                // ✨ NUEVO: Invalidar cache de tareas
+                this.invalidateTasksCache();
+                
                 UIManager.renderTasksDebounced();
                 UIManager.renderDashboardDebounced();
                 UIManager.renderProjectSummary();
@@ -2544,6 +3199,9 @@
                     
                     // Eliminar de Firebase/localStorage usando el nuevo método
                     await window.dataManager.deleteData('tasks', taskId);
+                    
+                    // ✨ NUEVO: Invalidar cache de tareas
+                    this.invalidateTasksCache();
                     
                     // Actualizar UI
                     UIManager.renderTasks();
@@ -2723,6 +3381,9 @@
                 // Guardar en base de datos
                 await window.dataManager.saveData('tasks', taskId, task);
 
+                // ✨ NUEVO: Invalidar cache de tareas
+                this.invalidateTasksCache();
+
                 // Cerrar modales
                 this.closeMoveTaskModal();
                 this.closeMobileTaskActionsModal();
@@ -2790,36 +3451,384 @@
                 ModalManager.close(modal);
             },
             
+            // ✨ FUNCIÓN SIMPLIFICADA: Modal del calendario
             openCalendarDayModal(dateString) {
                 AppState.selectedCalendarDate = dateString;
                 const date = new Date(dateString + 'T00:00:00');
                 const modal = DOM.calendarDayModal;
                 
-                modal.title.textContent = `Tareas para ${date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+                // Formatear fecha
+                const dayNumber = date.getDate();
+                const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
+                const weekday = date.toLocaleDateString('es-ES', { weekday: 'long' });
                 
-                const tasksForDay = AppState.tasks.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === date.toDateString());
+                // Actualizar títulos
+                const titleText = `${dayNumber} de ${monthName} - ${weekday}`;
+                if (modal.mobileTitle) modal.mobileTitle.textContent = titleText;
+                if (modal.desktopTitle) modal.desktopTitle.textContent = titleText;
                 
-                modal.tasksContainer.innerHTML = '';
-                if (tasksForDay.length > 0) {
-                    tasksForDay.forEach(task => {
-                        const taskEl = document.createElement('div');
-                        taskEl.className = 'bg-theme/50 p-3 rounded-md text-left';
-                        taskEl.textContent = task.title;
-                        modal.tasksContainer.appendChild(taskEl);
-                    });
+                // Obtener tareas del día
+                const tasksForDay = AppState.tasks.filter(t => 
+                    t.dueDate && new Date(t.dueDate).toDateString() === date.toDateString()
+                );
+                
+                // Renderizar contenido
+                this.renderCalendarModalContent(tasksForDay, dateString);
+                
+                // Mostrar modal
+                modal.el.classList.remove('hidden');
+                IconUtils.safeFeatherReplace();
+            },
+            
+            renderCalendarModalContent(tasks, dateString) {
+                const modal = DOM.calendarDayModal;
+                
+                if (tasks.length > 0) {
+                    // Renderizar lista de tareas
+                    const taskList = tasks.map(task => `
+                        <div class="calendar-task-item ${task.completed ? 'completed' : ''} ${task.priority ? task.priority + '-priority' : 'medium-priority'}">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <h4 class="font-medium ${task.completed ? 'line-through' : ''}">${task.title}</h4>
+                                    ${task.description ? `<p class="text-sm text-gray-600 dark:text-gray-400">${task.description}</p>` : ''}
+                                    <div class="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                                        <span class="capitalize">${task.priority || 'media'} prioridad</span>
+                                        ${task.project ? `<span>• ${task.project}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="App.toggleTaskCompletion('${task.id}')" 
+                                            class="p-2 rounded-full ${task.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'} hover:bg-opacity-80">
+                                        <i data-feather="${task.completed ? 'check-circle' : 'circle'}" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    if (modal.mobileTasks) modal.mobileTasks.innerHTML = taskList;
+                    if (modal.desktopTasks) modal.desktopTasks.innerHTML = taskList;
                 } else {
-                    modal.tasksContainer.innerHTML = '<p class="text-gray-500">No hay tareas programadas para este día.</p>';
+                    // Estado vacío
+                    const emptyContent = `
+                        <div class="text-center py-8">
+                            <i data-feather="calendar" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">No hay tareas para este día</p>
+                            <button onclick="App.createTaskForDate('${dateString}')" 
+                                    class="px-4 py-2 bg-theme-primary text-white rounded-lg hover:bg-opacity-90">
+                                <i data-feather="plus" class="w-4 h-4 inline mr-2"></i>
+                                Crear tarea
+                            </button>
+                        </div>
+                    `;
+                    
+                    if (modal.mobileTasks) modal.mobileTasks.innerHTML = emptyContent;
+                    if (modal.desktopTasks) modal.desktopTasks.innerHTML = emptyContent;
+                }
+            },
+            
+            createTaskForDate(dateString) {
+                // Cerrar modal
+                DOM.calendarDayModal.el.classList.add('hidden');
+                
+                // Ir a la sección de tareas
+                navigate('tasks');
+                
+                // Abrir modal de crear tarea con fecha preseleccionada
+                setTimeout(() => {
+                    this.openTaskModal(null, dateString);
+                }, 300);
+            },
+            
+            closeCalendarModal() {
+                DOM.calendarDayModal.el.classList.add('hidden');
+            },
+
+            // ✨ FASE 2: Descompletar tarea desde el calendario
+            async uncompleteTaskFromCalendar(taskId) {
+                const task = AppState.tasks.find(t => t.id === taskId);
+                if (!task) return;
+                
+                // Actualizar tarea
+                task.completed = false;
+                task.status = 'todo';
+                task.completedAt = null;
+                
+                // Guardar en base de datos
+                try {
+                    await window.dataManager.saveData('tasks', taskId, task);
+                    
+                    // ✨ NUEVO: Invalidar cache de tareas
+                    this.invalidateTasksCache();
+                    
+                    // Actualizar UI
+                    UIManager.renderTasks();
+                    UIManager.renderDashboard();
+                    UIManager.renderCalendar();
+                    this.updateNotificationIndicator();
+                    
+                    // Mostrar notificación
+                    this.showNotification('Tarea marcada como pendiente', 'info');
+                    
+                    // Refrescar modal si está abierto
+                    if (!DOM.calendarDayModal.el.classList.contains('hidden')) {
+                        this.openCalendarDayModal(AppState.selectedCalendarDate);
+                    }
+                } catch (error) {
+                    console.error('Error al descompletar tarea:', error);
+                    this.showNotification('Error al actualizar la tarea', 'error');
+                }
+            },
+
+            // ✨ FASE 2: Duplicar tarea desde el calendario
+            async duplicateTaskFromCalendar(taskId) {
+                const originalTask = AppState.tasks.find(t => t.id === taskId);
+                if (!originalTask) return;
+
+                const duplicatedTask = {
+                    ...originalTask,
+                    id: `task-${Date.now()}`,
+                    title: `${originalTask.title} (Copia)`,
+                    completed: false,
+                    status: 'todo',
+                    createdAt: Date.now(),
+                    completedAt: null
+                };
+
+                // Añadir a AppState
+                AppState.tasks.push(duplicatedTask);
+                
+                try {
+                    // Guardar en base de datos
+                    await window.dataManager.saveData('tasks', duplicatedTask.id, duplicatedTask);
+                    
+                    // Invalidar cache de tareas
+                    this.invalidateTasksCache();
+                    
+                    // Actualizar UI
+                    UIManager.renderTasks();
+                    UIManager.renderDashboard();
+                    UIManager.renderProjectSummary();
+                    UIManager.renderCalendar();
+                    this.updateNotificationIndicator();
+
+                    this.showNotification('Tarea duplicada exitosamente', 'success');
+                    
+                    // Refrescar modal si está abierto
+                    if (!DOM.calendarDayModal.el.classList.contains('hidden')) {
+                        this.openCalendarDayModal(AppState.selectedCalendarDate);
+                    }
+                } catch (error) {
+                    // Remover de AppState si falló el guardado
+                    AppState.tasks = AppState.tasks.filter(t => t.id !== duplicatedTask.id);
+                    console.error('Error al duplicar tarea:', error);
+                    this.showNotification('Error al duplicar la tarea', 'error');
+                }
+            },
+
+            // ✨ NUEVO: Navegar entre días en el modal de calendario
+            navigateCalendarDay(direction) {
+                if (!AppState.selectedCalendarDate) return;
+                
+                const currentDate = new Date(AppState.selectedCalendarDate + 'T00:00:00');
+                currentDate.setDate(currentDate.getDate() + direction);
+                
+                const newDateString = currentDate.toISOString().split('T')[0];
+                this.openCalendarDayModal(newDateString);
+            },
+            
+            // ✨ FASE 3: Configurar gestos táctiles para móvil
+            setupMobileGestures() {
+                const modal = DOM.calendarDayModal.el;
+                let startX = 0;
+                let startY = 0;
+                let endX = 0;
+                let endY = 0;
+                let isSwipeEnabled = false;
+                
+                // Detectar inicio del touch
+                modal.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        startX = e.touches[0].clientX;
+                        startY = e.touches[0].clientY;
+                        isSwipeEnabled = true;
+                    }
+                }, { passive: true });
+                
+                // Detectar movimiento del touch
+                modal.addEventListener('touchmove', (e) => {
+                    if (!isSwipeEnabled || e.touches.length !== 1) return;
+                    
+                    const currentX = e.touches[0].clientX;
+                    const currentY = e.touches[0].clientY;
+                    const deltaX = Math.abs(currentX - startX);
+                    const deltaY = Math.abs(currentY - startY);
+                    
+                    // Si el movimiento vertical es mayor, cancelar swipe horizontal
+                    if (deltaY > deltaX) {
+                        isSwipeEnabled = false;
+                    }
+                }, { passive: true });
+                
+                // Detectar fin del touch y procesar swipe
+                modal.addEventListener('touchend', (e) => {
+                    if (!isSwipeEnabled) return;
+                    
+                    endX = e.changedTouches[0].clientX;
+                    endY = e.changedTouches[0].clientY;
+                    
+                    const deltaX = endX - startX;
+                    const deltaY = Math.abs(endY - startY);
+                    const minSwipeDistance = 50; // Distancia mínima para considerar swipe
+                    const maxVerticalDistance = 100; // Máxima distancia vertical permitida
+                    
+                    // Verificar si es un swipe horizontal válido
+                    if (Math.abs(deltaX) > minSwipeDistance && deltaY < maxVerticalDistance) {
+                        if (deltaX > 0) {
+                            // Swipe derecha - día anterior
+                            this.navigateCalendarDay(-1);
+                        } else {
+                            // Swipe izquierda - día siguiente
+                            this.navigateCalendarDay(1);
+                        }
+                        
+                        // Feedback háptico si está disponible
+                        if (navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+                    }
+                    
+                    isSwipeEnabled = false;
+                }, { passive: true });
+                
+                // Prevenir scroll horizontal en el modal
+                modal.addEventListener('touchmove', (e) => {
+                    const target = e.target.closest('#calendar-day-tasks');
+                    if (!target) {
+                        // Solo prevenir si no es en el área de scroll de tareas
+                        if (Math.abs(endX - startX) > Math.abs(endY - startY)) {
+                            e.preventDefault();
+                        }
+                    }
+                }, { passive: false });
+            },
+            
+            // ✨ FASE 3: Optimizaciones de performance para móvil
+            setupMobileOptimizations() {
+                // Lazy loading de iconos
+                const observerOptions = {
+                    root: null,
+                    rootMargin: '50px',
+                    threshold: 0.1
+                };
+                
+                const iconObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            IconUtils.safeFeatherReplace(entry.target);
+                            iconObserver.unobserve(entry.target);
+                        }
+                    });
+                }, observerOptions);
+                
+                // Observar modal cuando se abre
+                const modal = DOM.calendarDayModal.el;
+                iconObserver.observe(modal);
+                
+                // Optimizar scroll performance
+                let ticking = false;
+                const mobileTasksContainer = DOM.calendarDayModal.mobileTasks;
+                const desktopTasksContainer = DOM.calendarDayModal.desktopTasks;
+                
+                // Agregar listeners de scroll para ambos contenedores
+                [mobileTasksContainer, desktopTasksContainer].forEach(container => {
+                    if (container) {
+                        container.addEventListener('scroll', () => {
+                            if (!ticking) {
+                                requestAnimationFrame(() => {
+                                    // Aquí se pueden añadir optimizaciones de scroll si es necesario
+                                    ticking = false;
+                                });
+                                ticking = true;
+                            }
+                        }, { passive: true });
+                    }
+                });
+                
+                // Mejorar performance de animaciones en móvil
+                if (window.DeviceMotionEvent) {
+                    // Reducir animaciones en dispositivos de gama baja
+                    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+                    if (reducedMotion.matches) {
+                        document.documentElement.style.setProperty('--animation-duration', '0.1s');
+                    }
+                }
+            },
+
+            // ✨ MEJORADO: Cache para tareas por día
+            _dailyTasksCache: new Map(),
+            _cacheVersion: 0,
+
+            // ✨ MEJORADO: Limpiar cache cuando las tareas cambien
+            invalidateTasksCache() {
+                this._cacheVersion++;
+                this._dailyTasksCache.clear();
+                console.log('🔄 Cache de tareas invalidado');
+            },
+
+            // ✨ MEJORADO: Obtener tareas para un día con cache
+            getTasksForDay(date) {
+                const dateString = date.toDateString();
+                const cacheKey = `${dateString}_${this._cacheVersion}`;
+                
+                if (this._dailyTasksCache.has(cacheKey)) {
+                    return this._dailyTasksCache.get(cacheKey);
                 }
                 
-                ModalManager.open(modal);
+                const tasksForDay = AppState.tasks.filter(t => {
+                    if (!t.dueDate) return false;
+                    try {
+                        return new Date(t.dueDate).toDateString() === dateString;
+                    } catch (error) {
+                        console.warn('⚠️ Fecha inválida en tarea:', t.id, t.dueDate);
+                        return false;
+                    }
+                });
+                
+                this._dailyTasksCache.set(cacheKey, tasksForDay);
+                return tasksForDay;
             },
     
             getHighestPriorityForDay(date) {
-                const tasksForDay = AppState.tasks.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === date.toDateString());
+                const tasksForDay = this.getTasksForDay(date);
                 if (tasksForDay.length === 0) return null;
-                if (tasksForDay.some(t => t.priority === 'high')) return 'high';
-                if (tasksForDay.some(t => t.priority === 'medium')) return 'medium';
+                
+                // Optimización: buscar directamente la prioridad más alta
+                for (const task of tasksForDay) {
+                    if (task.priority === 'high') return 'high';
+                }
+                for (const task of tasksForDay) {
+                    if (task.priority === 'medium') return 'medium';
+                }
                 return 'low';
+            },
+
+            // ✨ MEJORADO: Información completa del día
+            getDayInfo(date) {
+                const tasksForDay = this.getTasksForDay(date);
+                const total = tasksForDay.length;
+                const completed = tasksForDay.filter(t => t.completed).length;
+                const pending = total - completed;
+                const highestPriority = this.getHighestPriorityForDay(date);
+                
+                return {
+                    total,
+                    completed,
+                    pending,
+                    highestPriority,
+                    tasks: tasksForDay,
+                    hasTasksToday: total > 0
+                };
             },
 
             // Transición desde login hacia la app principal
