@@ -236,18 +236,60 @@
         .page-loading #login-screen,
         .page-loading #main-app {
             display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
         }
 
-        /* Loading screen elegante */
+        /* Ocultar canvas de estrellas durante loading */
+        .page-loading #starfield-canvas {
+            display: none !important;
+        }
+
+        /* Fix específico para móviles - evitar que Tailwind interfiera */
+        .page-loading * {
+            box-sizing: border-box;
+        }
+
+        /* Asegurar que el loading se vea en móviles */
+        @media (max-width: 768px) {
+            .page-loading {
+                min-height: 100vh !important;
+                min-height: 100dvh !important; /* Nuevo viewport dinámico */
+            }
+            
+            .page-loading::before {
+                width: 100vw !important;
+                height: 100vh !important;
+                min-height: 100dvh !important;
+            }
+            
+            .page-loading::after {
+                font-size: clamp(1.5rem, 6vw, 2.5rem) !important;
+            }
+        }
+
+        /* Loading screen elegante - Asegurar prioridad sobre bg-theme y compatibilidad móvil */
+        .page-loading {
+            background: linear-gradient(135deg, #110F1A 0%, #1E1B2E 100%) !important;
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100% !important;
+            height: 100% !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
+        
         .page-loading::before {
             content: '';
             position: fixed;
             inset: 0;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             background: linear-gradient(135deg, #110F1A 0%, #1E1B2E 100%);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            z-index: 99999;
+            display: block;
         }
 
         .page-loading::after {
@@ -257,11 +299,14 @@
             left: 50%;
             transform: translate(-50%, -50%);
             color: #C084FC;
-            font-size: 3rem;
+            font-size: clamp(2rem, 8vw, 3rem);
             font-weight: bold;
             letter-spacing: 0.2em;
-            z-index: 10000;
+            z-index: 100000;
             opacity: 0.8;
+            animation: fadeInOut 2s ease-in-out infinite;
+            text-align: center;
+            white-space: nowrap;
         }
 
         /* Estados específicos de pantallas - Definidos inline para garantía */
@@ -291,14 +336,33 @@
             opacity: 1 !important; 
         }
 
-        /* Animación sutil para el loading */
-        .page-loading::after {
-            animation: fadeInOut 2s ease-in-out infinite;
-        }
-
         @keyframes fadeInOut {
             0%, 100% { opacity: 0.4; }
             50% { opacity: 0.8; }
+        }
+
+        /* Fix específico para centrado de modal en móvil */
+        @media (max-width: 768px) {
+            #task-modal {
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 1rem !important;
+            }
+            
+            #task-modal [role="dialog"] {
+                margin: auto !important;
+                max-height: 90vh !important;
+                overflow-y: auto !important;
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                transform: none !important;
+            }
+            
+            #task-modal.show [role="dialog"] {
+                opacity: 1 !important;
+                transform: none !important;
+            }
         }
     </style>
 
@@ -832,147 +896,273 @@
 
             <!-- KAIZEN -->
             <section id="kaizen" class="app-section hidden max-w-6xl mx-auto px-4">
-                <!-- Header con gradiente y animación -->
-                <div class="text-center mb-16 relative">
-                    <div class="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-3xl blur-3xl"></div>
-                    <div class="relative">
-                        <h2 class="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                
+                <!-- VERSIÓN MÓVIL - Simple y efectiva -->
+                <div class="block md:hidden">
+                    <!-- Header móvil -->
+                    <div class="text-center mb-8">
+                        <h2 class="text-4xl font-black mb-3 text-white">
                             ✨ El Camino Kaizen
                         </h2>
-                        <p class="text-xl md:text-2xl text-gray-300 font-light">
+                        <p class="text-lg text-gray-300 font-medium px-2">
                             Mejora continua, un pequeño paso a la vez.
                         </p>
                     </div>
+
+                    <!-- Cards móvil - Una por una con colores impactantes -->
+                    <div class="space-y-6 mb-8">
+                        
+                        <!-- Card 1 - Azul -->
+                        <div class="bg-blue-600 rounded-2xl p-6 shadow-lg">
+                            <div class="flex items-center mb-4">
+                                <span class="text-3xl mr-3">🎯</span>
+                                <h3 class="text-xl font-black text-white">¿Qué es el método Kaizen?</h3>
+                            </div>
+                            <p class="text-blue-100 font-medium leading-relaxed">
+                                Kaizen es una filosofía japonesa enfocada en la <strong class="text-white">mejora continua</strong> a través de pequeños pasos diarios. En lugar de buscar grandes transformaciones de golpe, propone implementar <strong class="text-white">microacciones</strong> que, con el tiempo, generan grandes resultados.
+                            </p>
+                        </div>
+
+                        <!-- Card 2 - Púrpura -->
+                        <div class="bg-purple-600 rounded-2xl p-6 shadow-lg">
+                            <div class="flex items-center mb-4">
+                                <span class="text-3xl mr-3">🚀</span>
+                                <h3 class="text-xl font-black text-white">¿Cómo mejora tu productividad?</h3>
+                            </div>
+                            <p class="text-purple-100 font-medium leading-relaxed">
+                                Dividir un gran objetivo en <strong class="text-white">tareas pequeñas</strong> reduce la procrastinación y el estrés. Cada microacción completada genera una <strong class="text-white">sensación de logro</strong>, motivándote a seguir. Así se crea un ciclo de progreso constante.
+                            </p>
+                        </div>
+
+                        <!-- Card 3 - Índigo -->
+                        <div class="bg-indigo-600 rounded-2xl p-6 shadow-lg">
+                            <div class="flex items-center mb-4">
+                                <span class="text-3xl mr-3">🧠</span>
+                                <h3 class="text-xl font-black text-white">¿Qué es ORION y cómo funciona?</h3>
+                            </div>
+                            <p class="text-indigo-100 font-medium mb-4">
+                                <strong class="text-white">ORION</strong> es tu asistente de productividad basado en el método Kaizen.
+                                Desde tu panel principal podrás:
+                            </p>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-center bg-indigo-700 rounded-lg p-3">
+                                    <span class="text-xl mr-3">📁</span>
+                                    <div>
+                                        <p class="font-black text-white text-sm">Crear proyectos</p>
+                                        <p class="text-indigo-200 text-xs">Agrupa ideas y metas</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center bg-indigo-700 rounded-lg p-3">
+                                    <span class="text-xl mr-3">🗓️</span>
+                                    <div>
+                                        <p class="font-black text-white text-sm">Asignar al calendario</p>
+                                        <p class="text-indigo-200 text-xs">Programa para hoy o mañana</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center bg-indigo-700 rounded-lg p-3">
+                                    <span class="text-xl mr-3">📊</span>
+                                    <div>
+                                        <p class="font-black text-white text-sm">Visualizar progreso</p>
+                                        <p class="text-indigo-200 text-xs">Avances y racha diaria</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center bg-indigo-700 rounded-lg p-3">
+                                    <span class="text-xl mr-3">🔁</span>
+                                    <div>
+                                        <p class="font-black text-white text-sm">Días de racha</p>
+                                        <p class="text-indigo-200 text-xs">¡Como si fuera un juego!</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 4 - Naranja/Rojo -->
+                        <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-6 shadow-lg">
+                            <div class="flex items-center mb-4">
+                                <span class="text-3xl mr-3">⚡</span>
+                                <h3 class="text-xl font-black text-white">Aplica microacciones en ORION</h3>
+                            </div>
+                            <p class="text-orange-100 font-medium mb-4">
+                                Usa la sección de <strong class="text-white">Tareas</strong> para crear acciones que puedas realizar en <strong class="text-white">menos de 5 minutos</strong>.
+                            </p>
+                            
+                            <div class="space-y-3 mb-4">
+                                <div class="bg-red-600 rounded-lg p-3">
+                                    <p class="text-white font-bold text-sm">📚 ¿Querés escribir un libro?</p>
+                                    <p class="text-red-100 text-sm">Crea "Escribir 3 líneas"</p>
+                                </div>
+                                <div class="bg-red-600 rounded-lg p-3">
+                                    <p class="text-white font-bold text-sm">💼 ¿Estás buscando trabajo?</p>
+                                    <p class="text-red-100 text-sm">Crea "Enviar 1 CV"</p>
+                                </div>
+                                <div class="bg-red-600 rounded-lg p-3">
+                                    <p class="text-white font-bold text-sm">💻 ¿Querés aprender a programar?</p>
+                                    <p class="text-red-100 text-sm">Agendá "Ver 2 min de un tutorial"</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-yellow-400 rounded-lg p-4">
+                                <p class="text-yellow-900 font-black text-center">
+                                    🔑 La clave es: pequeños pasos, todos los días.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón móvil - Bien ubicado -->
+                    <div class="text-center pb-8">
+                        <button id="try-kaizen-btn" class="w-full max-w-sm bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-black text-lg shadow-xl">
+                            🚀 Comenzar mi Camino Kaizen
+                        </button>
+                        <p class="text-gray-400 mt-3 text-sm font-medium">Comienza con una sola microacción hoy</p>
+                    </div>
                 </div>
 
-                <!-- Grid de contenido con cards glassmorphism -->
-                <div class="grid gap-8 md:gap-12 mb-16">
-                    
-                    <!-- Card 1: ¿Qué es Kaizen? -->
-                    <div class="group relative bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-500 hover:scale-105">
-                        <div class="flex items-start gap-6">
-                            <div class="shrink-0 w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-                                🎯
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="text-2xl md:text-3xl font-bold mb-4 text-white">¿Qué es el método Kaizen?</h3>
-                                <p class="text-gray-300 text-lg leading-relaxed">
-                                    Kaizen es una filosofía japonesa enfocada en la mejora continua a través de pequeños pasos diarios. En lugar de buscar grandes transformaciones de golpe, propone implementar microacciones que, con el tiempo, generan grandes resultados.
-                                </p>
-                            </div>
+                <!-- VERSIÓN DESKTOP - Diseño original -->
+                <div class="hidden md:block">
+                    <!-- Header con gradiente y animación -->
+                    <div class="text-center mb-16 relative">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-3xl blur-3xl"></div>
+                        <div class="relative">
+                            <h2 class="text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                                ✨ El Camino Kaizen
+                            </h2>
+                            <p class="text-xl lg:text-2xl text-gray-300 font-light">
+                                Mejora continua, un pequeño paso a la vez.
+                            </p>
                         </div>
                     </div>
 
-                    <!-- Card 2: ¿Cómo mejora tu productividad? -->
-                    <div class="group relative bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-500 hover:scale-105">
-                        <div class="flex items-start gap-6 flex-row-reverse">
-                            <div class="shrink-0 w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-                                🚀
-                            </div>
-                            <div class="flex-1 text-right md:text-left">
-                                <h3 class="text-2xl md:text-3xl font-bold mb-4 text-white">¿Cómo mejora tu productividad?</h3>
-                                <p class="text-gray-300 text-lg leading-relaxed">
-                                    Dividir un gran objetivo en tareas pequeñas reduce la procrastinación y el estrés. Cada microacción completada genera una sensación de logro, motivándote a seguir. Así se crea un ciclo de progreso constante, que te mantiene enfocado y avanza contigo, paso a paso.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card 3: ¿Qué es ORION? -->
-                    <div class="group relative bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-500 hover:scale-105">
-                        <div class="flex items-start gap-6">
-                            <div class="shrink-0 w-16 h-16 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-                                🧠
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="text-2xl md:text-3xl font-bold mb-4 text-white">¿Qué es ORION y cómo funciona?</h3>
-                                <p class="text-gray-300 text-lg leading-relaxed mb-6">
-                                    ORION es tu asistente de productividad basado en el método Kaizen.<br>
-                                    Desde tu panel principal (Dashboard) podrás:
-                                </p>
-                                
-                                <!-- Features grid -->
-                                <div class="grid md:grid-cols-2 gap-4">
-                                    <div class="flex items-center gap-3 bg-white/5 rounded-xl p-4">
-                                        <span class="text-xl">📁</span>
-                                        <div>
-                                            <p class="font-semibold text-white">Crear proyectos</p>
-                                            <p class="text-sm text-gray-400">Agrupa ideas y metas en secciones ordenadas</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3 bg-white/5 rounded-xl p-4">
-                                        <span class="text-xl">🗓️</span>
-                                        <div>
-                                            <p class="font-semibold text-white">Asignar al calendario</p>
-                                            <p class="text-sm text-gray-400">Programa para hoy, mañana o más adelante</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3 bg-white/5 rounded-xl p-4">
-                                        <span class="text-xl">📊</span>
-                                        <div>
-                                            <p class="font-semibold text-white">Visualizar progreso</p>
-                                            <p class="text-sm text-gray-400">Resume tareas, avances y racha diaria</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3 bg-white/5 rounded-xl p-4">
-                                        <span class="text-xl">🔁</span>
-                                        <div>
-                                            <p class="font-semibold text-white">Días de racha</p>
-                                            <p class="text-sm text-gray-400">¡Cuida tu racha como si fuera un juego!</p>
-                                        </div>
-                                    </div>
+                    <!-- Grid de contenido con cards glassmorphism -->
+                    <div class="grid gap-8 lg:gap-12 mb-16">
+                        
+                        <!-- Card 1: ¿Qué es Kaizen? -->
+                        <div class="group relative bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-500 hover:scale-105">
+                            <div class="flex items-start gap-6">
+                                <div class="shrink-0 w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
+                                    🎯
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card 4: Microacciones -->
-                    <div class="group relative bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-md border border-orange-500/20 rounded-3xl p-8 hover:from-orange-500/15 hover:to-red-500/15 transition-all duration-500 hover:scale-105">
-                        <div class="flex items-start gap-6">
-                            <div class="shrink-0 w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-                                ⚡
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="text-2xl md:text-3xl font-bold mb-4 text-white">Aplica microacciones en ORION</h3>
-                                <p class="text-gray-300 text-lg leading-relaxed mb-6">
-                                    Usa la sección de Tareas para crear acciones que puedas realizar en menos de 5 minutos.
-                                </p>
-                                
-                                <!-- Ejemplos de microacciones -->
-                                <div class="space-y-3">
-                                    <div class="flex items-center gap-3 bg-white/5 rounded-lg p-3">
-                                        <span class="text-lg">📚</span>
-                                        <p class="text-gray-300"><strong>¿Querés escribir un libro?</strong> Crea una tarea "Escribir 3 líneas"</p>
-                                    </div>
-                                    <div class="flex items-center gap-3 bg-white/5 rounded-lg p-3">
-                                        <span class="text-lg">💼</span>
-                                        <p class="text-gray-300"><strong>¿Estás buscando trabajo?</strong> Crea "Enviar 1 CV"</p>
-                                    </div>
-                                    <div class="flex items-center gap-3 bg-white/5 rounded-lg p-3">
-                                        <span class="text-lg">💻</span>
-                                        <p class="text-gray-300"><strong>¿Querés aprender a programar?</strong> Agendá "Ver 2 min de un tutorial"</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-6 p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl border border-yellow-500/20">
-                                    <p class="text-yellow-300 font-semibold text-center">
-                                        🔑 La clave es: pequeños pasos, todos los días.
+                                <div class="flex-1">
+                                    <h3 class="text-2xl lg:text-3xl font-bold mb-4 text-white">¿Qué es el método Kaizen?</h3>
+                                    <p class="text-gray-300 text-lg leading-relaxed">
+                                        Kaizen es una filosofía japonesa enfocada en la mejora continua a través de pequeños pasos diarios. En lugar de buscar grandes transformaciones de golpe, propone implementar microacciones que, con el tiempo, generan grandes resultados.
                                     </p>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- CTA Button con efectos -->
-                <div class="text-center">
-                    <div class="relative inline-block">
-                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-md opacity-50 scale-105"></div>
-                        <button id="try-kaizen-btn" class="relative bg-gradient-to-r from-blue-500 to-purple-600 text-white px-12 py-4 rounded-full font-bold text-xl hover:scale-105 transform transition-all duration-300 shadow-xl hover:shadow-blue-500/30">
-                            🚀 Comenzar mi Camino Kaizen
-                        </button>
+                        <!-- Card 2: ¿Cómo mejora tu productividad? -->
+                        <div class="group relative bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-500 hover:scale-105">
+                            <div class="flex items-start gap-6 flex-row-reverse">
+                                <div class="shrink-0 w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
+                                    🚀
+                                </div>
+                                <div class="flex-1 text-right lg:text-left">
+                                    <h3 class="text-2xl lg:text-3xl font-bold mb-4 text-white">¿Cómo mejora tu productividad?</h3>
+                                    <p class="text-gray-300 text-lg leading-relaxed">
+                                        Dividir un gran objetivo en tareas pequeñas reduce la procrastinación y el estrés. Cada microacción completada genera una sensación de logro, motivándote a seguir. Así se crea un ciclo de progreso constante, que te mantiene enfocado y avanza contigo, paso a paso.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: ¿Qué es ORION? -->
+                        <div class="group relative bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-500 hover:scale-105">
+                            <div class="flex items-start gap-6">
+                                <div class="shrink-0 w-16 h-16 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
+                                    🧠
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-2xl lg:text-3xl font-bold mb-4 text-white">¿Qué es ORION y cómo funciona?</h3>
+                                    <p class="text-gray-300 text-lg leading-relaxed mb-6">
+                                        ORION es tu asistente de productividad basado en el método Kaizen.<br>
+                                        Desde tu panel principal (Dashboard) podrás:
+                                    </p>
+                                    
+                                    <!-- Features grid -->
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="flex items-center gap-3 bg-white/5 rounded-xl p-4">
+                                            <span class="text-xl">📁</span>
+                                            <div>
+                                                <p class="font-semibold text-white">Crear proyectos</p>
+                                                <p class="text-sm text-gray-400">Agrupa ideas y metas en secciones ordenadas</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3 bg-white/5 rounded-xl p-4">
+                                            <span class="text-xl">🗓️</span>
+                                            <div>
+                                                <p class="font-semibold text-white">Asignar al calendario</p>
+                                                <p class="text-sm text-gray-400">Programa para hoy, mañana o más adelante</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3 bg-white/5 rounded-xl p-4">
+                                            <span class="text-xl">📊</span>
+                                            <div>
+                                                <p class="font-semibold text-white">Visualizar progreso</p>
+                                                <p class="text-sm text-gray-400">Resume tareas, avances y racha diaria</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3 bg-white/5 rounded-xl p-4">
+                                            <span class="text-xl">🔁</span>
+                                            <div>
+                                                <p class="font-semibold text-white">Días de racha</p>
+                                                <p class="text-sm text-gray-400">¡Cuida tu racha como si fuera un juego!</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Microacciones -->
+                        <div class="group relative bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-md border border-orange-500/20 rounded-3xl p-8 hover:from-orange-500/15 hover:to-red-500/15 transition-all duration-500 hover:scale-105">
+                            <div class="flex items-start gap-6">
+                                <div class="shrink-0 w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
+                                    ⚡
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-2xl lg:text-3xl font-bold mb-4 text-white">Aplica microacciones en ORION</h3>
+                                    <p class="text-gray-300 text-lg leading-relaxed mb-6">
+                                        Usa la sección de Tareas para crear acciones que puedas realizar en menos de 5 minutos.
+                                    </p>
+                                    
+                                    <!-- Ejemplos de microacciones -->
+                                    <div class="space-y-3">
+                                        <div class="flex items-center gap-3 bg-white/5 rounded-lg p-3">
+                                            <span class="text-lg">📚</span>
+                                            <p class="text-gray-300"><strong>¿Querés escribir un libro?</strong> Crea una tarea "Escribir 3 líneas"</p>
+                                        </div>
+                                        <div class="flex items-center gap-3 bg-white/5 rounded-lg p-3">
+                                            <span class="text-lg">💼</span>
+                                            <p class="text-gray-300"><strong>¿Estás buscando trabajo?</strong> Crea "Enviar 1 CV"</p>
+                                        </div>
+                                        <div class="flex items-center gap-3 bg-white/5 rounded-lg p-3">
+                                            <span class="text-lg">💻</span>
+                                            <p class="text-gray-300"><strong>¿Querés aprender a programar?</strong> Agendá "Ver 2 min de un tutorial"</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-6 p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl border border-yellow-500/20">
+                                        <p class="text-yellow-300 font-semibold text-center">
+                                            🔑 La clave es: pequeños pasos, todos los días.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <p class="text-gray-400 mt-4 text-sm">Comienza con una sola microacción hoy</p>
+
+                    <!-- CTA Button con efectos -->
+                    <div class="text-center">
+                        <div class="relative inline-block">
+                            <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-md opacity-50 scale-105"></div>
+                            <button id="try-kaizen-btn" class="relative bg-gradient-to-r from-blue-500 to-purple-600 text-white px-12 py-4 rounded-full font-bold text-xl hover:scale-105 transform transition-all duration-300 shadow-xl hover:shadow-blue-500/30">
+                                🚀 Comenzar mi Camino Kaizen
+                            </button>
+                        </div>
+                        <p class="text-gray-400 mt-4 text-sm">Comienza con una sola microacción hoy</p>
+                    </div>
                 </div>
             </section>
 
@@ -1008,7 +1198,6 @@
                                 <input type="file" id="import-json-input" class="hidden" accept=".json">
                             </label>
                         </div>
-                        <button id="storage-stats-btn" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700 transition-colors">📊 Ver Estadísticas</button>
                     </div>
                      <!-- Zona de peligro -->
                     <div class="border-2 border-red-500/50 p-4 rounded-lg mt-8">
@@ -1033,7 +1222,7 @@
     <div id="modal-container">
         <!-- Modal para Tareas -->
         <div id="task-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-theme-card rounded-lg shadow-2xl p-6 md:p-8 w-full max-w-md transform transition-all opacity-0 -translate-y-10" role="dialog" aria-modal="true">
+            <div class="bg-theme-card rounded-lg shadow-2xl p-6 md:p-8 w-full max-w-md transform transition-all opacity-0 -translate-y-10 mx-auto my-auto" role="dialog" aria-modal="true">
                 <h3 id="modal-title" class="text-2xl font-bold mb-6">Crear Nueva Tarea</h3>
                 <form id="task-form">
                     <input type="hidden" id="task-id">
@@ -1951,7 +2140,6 @@
             usernameInput: document.getElementById('username-input'),
             exportJsonBtn: document.getElementById('export-json-btn'),
             importJsonInput: document.getElementById('import-json-input'),
-            storageStatsBtn: document.getElementById('storage-stats-btn'),
             logoutBtn: document.getElementById('logout-btn'),
             deleteAllBtn: document.getElementById('delete-all-btn'),
     
@@ -3021,6 +3209,10 @@
                 DOM.backToWelcomeBtn.addEventListener('click', () => {
                     console.log('🔄 Volviendo a pantalla de bienvenida...');
                     
+                    // Remover cualquier clase de loading que pueda estar interferiendo
+                    document.body.classList.remove('page-loading', 'auth-loading');
+                    document.body.style.overflow = ''; // Restaurar scroll
+                    
                     // Ocultar login screen con estilos inline
                     DOM.loginScreen.style.display = 'none';
                     DOM.loginScreen.style.opacity = '0';
@@ -3041,6 +3233,11 @@
                     DOM.loginScreen.classList.add('hidden');
                     DOM.welcomeScreen.classList.remove('hidden');
                     
+                    // Reiniciar la animación de welcome si es necesario
+                    if (typeof this.initWelcomeAnimation === 'function') {
+                        this.initWelcomeAnimation();
+                    }
+                    
                     console.log('✅ Transición a welcome screen completada');
                 });
 
@@ -3053,7 +3250,6 @@
                         DOM.loginLoading.classList.add('hidden');
                         
                         if (result.success) {
-                            this.showNotification('¡Bienvenido! Sesión iniciada con Google', 'success');
                             this.transitionToApp(result.user);
                         } else {
                             this.showNotification(result.error, 'error');
@@ -3072,7 +3268,6 @@
                     const result = window.authManager.signInAsGuest();
                     
                     if (result.success) {
-                        this.showNotification('¡Bienvenido! Modo invitado activado', 'success');
                         this.transitionToApp(result.user);
                     } else {
                         this.showNotification('Error al iniciar modo invitado', 'error');
@@ -3224,7 +3419,6 @@
                 DOM.usernameInput.addEventListener('change', async () => { AppState.user.name = DOM.usernameInput.value; await DataService.save(); UIManager.renderDashboard(); });
                 DOM.exportJsonBtn.addEventListener('click', () => this.exportData());
                 DOM.importJsonInput.addEventListener('change', (e) => this.importData(e));
-                DOM.storageStatsBtn.addEventListener('click', () => this.showStorageStats());
                 DOM.deleteAllBtn.addEventListener('click', () => this.deleteAllData());
                 DOM.logoutBtn.addEventListener('click', () => this.logout());
     
@@ -4243,81 +4437,6 @@
                         }
                     }, 300);
                 }, duration);
-            },
-
-            // Mostrar estadísticas de almacenamiento
-            showStorageStats() {
-                if (!window.dataManager) return;
-                
-                const stats = window.dataManager.getStorageStats();
-                const health = window.dataManager.getHealthCheck();
-                
-                const formatBytes = (bytes) => {
-                    if (bytes === 0) return '0 Bytes';
-                    const k = 1024;
-                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                    const i = Math.floor(Math.log(bytes) / Math.log(k));
-                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-                };
-                
-                const statsModal = document.createElement('div');
-                statsModal.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4';
-                statsModal.innerHTML = `
-                    <div class="bg-theme-card rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold text-purple-400">Estadísticas de Almacenamiento</h3>
-                            <button id="close-stats" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div class="bg-theme/30 p-4 rounded-lg">
-                                <h4 class="font-semibold text-purple-300 mb-2">Estado General</h4>
-                                <p><span class="text-gray-400">Modo:</span> ${stats.mode === 'local' ? 'Local' : 'Nube'}</p>
-                                <p><span class="text-gray-400">Conexión:</span> ${stats.isOnline ? 'En línea' : 'Sin conexión'}</p>
-                                <p><span class="text-gray-400">Cola de sincronización:</span> ${stats.syncQueueSize} elementos</p>
-                                <p><span class="text-gray-400">Última sincronización:</span> ${stats.lastSync}</p>
-                            </div>
-                            
-                            <div class="bg-theme/30 p-4 rounded-lg">
-                                <h4 class="font-semibold text-purple-300 mb-2">Uso de Almacenamiento</h4>
-                                <p><span class="text-gray-400">Total de elementos:</span> ${stats.totalItems}</p>
-                                <p><span class="text-gray-400">Espacio local usado:</span> ${formatBytes(stats.localStorageUsage)}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-purple-300 mb-3">Colecciones</h4>
-                            ${Object.entries(stats.collections).map(([name, data]) => `
-                                <div class="bg-theme/20 p-3 rounded mb-2">
-                                    <div class="flex justify-between items-center">
-                                        <span class="font-medium">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
-                                        <span class="text-sm text-gray-400">${data.itemCount} elementos</span>
-                                    </div>
-                                    <div class="text-xs text-gray-500 mt-1">
-                                        Tamaño: ${formatBytes(data.sizeBytes)}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        
-                        <div class="text-xs text-gray-500">
-                            <p>Actualizado: ${new Date().toLocaleString()}</p>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.appendChild(statsModal);
-                
-                // Cerrar modal
-                document.getElementById('close-stats').onclick = () => {
-                    statsModal.remove();
-                };
-                
-                statsModal.onclick = (e) => {
-                    if (e.target === statsModal) {
-                        statsModal.remove();
-                    }
-                };
             },
 
             exportData() {

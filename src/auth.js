@@ -77,7 +77,7 @@ export class AuthManager {
     return {
       uid: 'guest-user',
       email: 'usuario.invitado@local.com',
-      displayName: 'Usuario Invitado',
+      displayName: 'Invitado',
       photoURL: null,
       isGuest: true
     };
