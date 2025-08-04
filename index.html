@@ -30,6 +30,18 @@
     <!-- Tailwind CSS - Solo en desarrollo, en producción usar build optimizado -->
     <script src="https://cdn.tailwindcss.com" defer></script>
     
+    <!-- Import map para Firebase -->
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js",
+            "firebase/analytics": "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js"
+        }
+    }
+    </script>
+    
     <!-- Fonts con display=swap para mejor performance -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
