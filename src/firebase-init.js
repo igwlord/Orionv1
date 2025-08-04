@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { firebaseConfig, appMode } from './firebase-config.js';
+import { firebaseConfig, appMode, isFirebaseConfigured } from './firebase-config.js';
 
 let db = null;
 let auth = null;
@@ -10,25 +10,21 @@ let isGuestMode = false;
 // Verificar si estamos en desarrollo
 const isDev = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV;
 
-// Inicialización de Firebase
-if (appMode === 'firebase' && firebaseConfig.apiKey && firebaseConfig.apiKey !== 'demo-api-key') {
+// Inicialización de Firebase solo si está configurado correctamente
+if (isFirebaseConfigured) {
   try {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     auth = getAuth(app);
     isGuestMode = false;
-    if (isDev) {
-      console.log('🔥 Firebase inicializado correctamente');
-    }
+    console.log('🔥 Firebase inicializado correctamente');
   } catch (error) {
     console.error('❌ Error al inicializar Firebase:', error);
     isGuestMode = true;
   }
 } else {
   isGuestMode = true;
-  if (isDev || window.IS_DEV) {
-    console.log('👤 Modo invitado activado - usando localStorage');
-  }
+  console.log('👤 Modo invitado activado - Firebase no configurado o usando valores demo');
 }
 
 export { db, auth, isGuestMode };

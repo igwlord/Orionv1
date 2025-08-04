@@ -15,19 +15,25 @@ const getEnvVar = (key, fallback = '') => {
   return value || fallback;
 };
 
-// Configuración de Firebase con valores de fallback para demo
+// Configuración de Firebase - sin fallbacks por defecto
 export const firebaseConfig = {
-  apiKey: getEnvVar('VITE_FIREBASE_API_KEY', 'demo-api-key'),
-  authDomain: getEnvVar('VITE_FIREBASE_AUTH_DOMAIN', 'orionv1-demo.firebaseapp.com'),
-  projectId: getEnvVar('VITE_FIREBASE_PROJECT_ID', 'orionv1-demo'),
-  storageBucket: getEnvVar('VITE_FIREBASE_STORAGE_BUCKET', 'orionv1-demo.appspot.com'),
-  messagingSenderId: getEnvVar('VITE_FIREBASE_MESSAGING_SENDER_ID', '123456789'),
-  appId: getEnvVar('VITE_FIREBASE_APP_ID', '1:123456789:web:demo'),
-  measurementId: getEnvVar('VITE_FIREBASE_MEASUREMENT_ID', 'G-DEMO')
+  apiKey: getEnvVar('VITE_FIREBASE_API_KEY'),
+  authDomain: getEnvVar('VITE_FIREBASE_AUTH_DOMAIN'),
+  projectId: getEnvVar('VITE_FIREBASE_PROJECT_ID'),
+  storageBucket: getEnvVar('VITE_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: getEnvVar('VITE_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: getEnvVar('VITE_FIREBASE_APP_ID'),
+  measurementId: getEnvVar('VITE_FIREBASE_MEASUREMENT_ID')
 };
 
 export const appId = getEnvVar('VITE_APP_ID', 'orion-v1');
-export const appMode = getEnvVar('VITE_MODE', 'demo');
+export const appMode = getEnvVar('VITE_MODE', 'guest'); // Cambiar a 'guest' por defecto
+
+// Verificar si Firebase está configurado correctamente
+export const isFirebaseConfigured = firebaseConfig.apiKey && 
+                                   firebaseConfig.authDomain && 
+                                   firebaseConfig.projectId &&
+                                   !firebaseConfig.apiKey.includes('demo');
 
 // Verificar si estamos en desarrollo
 const isDev = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV;
