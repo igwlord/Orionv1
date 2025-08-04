@@ -51,6 +51,9 @@
     <!-- Bundle Manager - Sistema de bundles inteligente -->
     <script type="module" src="/src/utils/bundle-manager.js"></script>
     
+    <!-- PWA Manager - Service Worker y PWA support -->
+    <script src="/public/pwa-manager.js"></script>
+    
     <!-- Sistema de carga inteligente de bundles -->
     <script>
         // Definir IS_DEV globalmente para acceso temprano
@@ -4449,6 +4452,14 @@
     
         // Iniciar la aplicación
         App.init();
+        
+        // Inicializar PWA Manager y Service Worker
+        if (window.PWAManager && 'serviceWorker' in navigator) {
+            window.PWAManager.registerServiceWorker();
+            if (window.IS_DEV) {
+                console.log('🔧 PWA Manager iniciado');
+            }
+        }
         
         // ✨ HACER APP ACCESIBLE GLOBALMENTE para onclick handlers
         window.App = App;

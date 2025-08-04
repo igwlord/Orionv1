@@ -7,14 +7,17 @@ let db = null;
 let auth = null;
 let isGuestMode = false;
 
+// Verificar si estamos en desarrollo
+const isDev = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV;
+
 // Inicialización de Firebase
-if (appMode === 'firebase' && firebaseConfig.apiKey) {
+if (appMode === 'firebase' && firebaseConfig.apiKey && firebaseConfig.apiKey !== 'demo-api-key') {
   try {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     auth = getAuth(app);
     isGuestMode = false;
-    if (import.meta.env.DEV) {
+    if (isDev) {
       console.log('🔥 Firebase inicializado correctamente');
     }
   } catch (error) {
@@ -23,7 +26,7 @@ if (appMode === 'firebase' && firebaseConfig.apiKey) {
   }
 } else {
   isGuestMode = true;
-  if (import.meta.env.DEV) {
+  if (isDev || window.IS_DEV) {
     console.log('👤 Modo invitado activado - usando localStorage');
   }
 }
