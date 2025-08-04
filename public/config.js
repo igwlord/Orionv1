@@ -14,8 +14,12 @@ window.APP_CONFIG = {
   mode: "firebase"
 };
 
-console.log('🔥 Configuración de producción cargada:', {
-  hasApiKey: !!window.FIREBASE_CONFIG.apiKey,
-  projectId: window.FIREBASE_CONFIG.projectId,
-  mode: window.APP_CONFIG.mode
-});
+// Solo en desarrollo - mostrar configuración cargada
+if (typeof console !== 'undefined') {
+  console.log('🔥 Configuración de producción cargada:', {
+    hasApiKey: !!window.FIREBASE_CONFIG.apiKey,
+    projectId: window.FIREBASE_CONFIG.projectId,
+    mode: window.APP_CONFIG.mode,
+    timestamp: new Date().toISOString()
+  });
+}

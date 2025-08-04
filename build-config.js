@@ -26,11 +26,15 @@ window.APP_CONFIG = {
   mode: "${process.env.VITE_MODE || 'firebase'}"
 };
 
-console.log('🔥 Configuración de producción cargada:', {
-  hasApiKey: !!window.FIREBASE_CONFIG.apiKey,
-  projectId: window.FIREBASE_CONFIG.projectId,
-  mode: window.APP_CONFIG.mode
-});
+// Solo en desarrollo - mostrar configuración cargada
+if (typeof console !== 'undefined') {
+  console.log('🔥 Configuración de producción cargada:', {
+    hasApiKey: !!window.FIREBASE_CONFIG.apiKey,
+    projectId: window.FIREBASE_CONFIG.projectId,
+    mode: window.APP_CONFIG.mode,
+    timestamp: new Date().toISOString()
+  });
+}
 `;
 
 // Escribir el archivo de configuración
@@ -41,5 +45,13 @@ console.log('✅ Archivo config.js generado correctamente');
 console.log('🔧 Variables encontradas:', {
   VITE_FIREBASE_API_KEY: !!process.env.VITE_FIREBASE_API_KEY,
   VITE_FIREBASE_PROJECT_ID: !!process.env.VITE_FIREBASE_PROJECT_ID,
+  VITE_FIREBASE_AUTH_DOMAIN: !!process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  VITE_FIREBASE_APP_ID: !!process.env.VITE_FIREBASE_APP_ID,
   VITE_MODE: process.env.VITE_MODE || 'firebase'
 });
+
+// Mostrar preview del archivo generado
+console.log('📄 Contenido del config.js:');
+console.log('---');
+console.log(config.substring(0, 200) + '...');
+console.log('---');

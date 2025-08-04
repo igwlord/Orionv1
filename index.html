@@ -17,11 +17,29 @@
     <!-- Resource Hints para optimización -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Tailwind CSS compilado -->
-    <link rel="stylesheet" href="/public/output.css">
+    <!-- Tailwind CSS - usar CDN temporalmente hasta resolver build -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Configurar Tailwind para usar el tema personalizado
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc',
+                400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
+                800: '#075985', 900: '#0c4a6e'
+              }
+            }
+          }
+        }
+      }
+    </script>
     
     <!-- Critical CSS inlined para fastest rendering -->
     <style>
