@@ -7,6 +7,7 @@ class BundleManager {
     constructor() {
         this.bundles = new Map();
         this.loadedBundles = new Set();
+        this.loadedComponents = new Set(); // Track individual components
         this.bundleQueue = [];
         this.isProduction = !window.IS_DEV;
         
@@ -96,7 +97,7 @@ class BundleManager {
             const loadTime = performance.now() - startTime;
             
             if (window.IS_DEV) {
-                console.log(`✅ Bundle '${bundleName}' loaded (${loadTime.toFixed(2)}ms, ${bundle.components.length} components)`);
+                Logger.info(`Bundle '${bundleName}' loaded (${loadTime.toFixed(2)}ms, ${bundle.components.length} components)`);
             }
 
             return { 
@@ -106,7 +107,7 @@ class BundleManager {
             };
 
         } catch (error) {
-            console.error(`❌ Failed to load bundle '${bundleName}':`, error);
+            Logger.error(`Failed to load bundle '${bundleName}':`, error);
             return { success: false, error: error.message };
         }
     }
@@ -116,6 +117,14 @@ class BundleManager {
      */
     async loadComponent(component) {
         const { path, type } = component;
+
+        // Verificar si ya se cargó este componente
+        if (this.loadedComponents && this.loadedComponents.has(path)) {
+            if (window.IS_DEV) {
+                Logger.info(`Component already loaded: ${path}`);
+            }
+            return;
+        }
 
         try {
             // Determinar si es un módulo ES6
@@ -138,8 +147,11 @@ class BundleManager {
                 }
             }
 
+            // Marcar componente como cargado
+            this.loadedComponents.add(path);
+
         } catch (error) {
-            console.error(`Failed to load component: ${path}`, error);
+            Logger.error(`Failed to load component: ${path}`, error);
             throw error;
         }
     }
@@ -200,7 +212,9 @@ class BundleManager {
         const loadingStrategy = this.determineLoadingStrategy();
         
         if (window.IS_DEV) {
-            console.log(`🎯 Loading strategy: ${loadingStrategy}`);
+        if (window.IS_DEV) {
+            Logger.info(`Loading strategy: ${loadingStrategy}`);
+        }
         }
 
         switch (loadingStrategy) {

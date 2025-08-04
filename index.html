@@ -53,11 +53,13 @@
                     window.bundleManager.setupIntelligentPreloading();
                 } else {
                     // Fallback para carga directa en caso de error
-                    console.warn('Bundle manager not available, loading resources directly');
+                if (window.IS_DEV) {
+                    Logger.warn('Bundle manager not available, loading resources directly');
+                }
                     await loadCriticalResourcesFallback();
                 }
             } catch (error) {
-                console.error('Error loading resources:', error);
+                Logger.error('Error loading resources:', error);
                 await loadCriticalResourcesFallback();
             }
         };
@@ -67,7 +69,9 @@
             // Los recursos críticos ya se cargan como módulos ES6 arriba
             // Solo necesitamos cargar recursos externos aquí si es necesario
             if (window.IS_DEV) {
-                console.log('📦 Critical ES6 modules already loaded via import statements');
+            if (window.IS_DEV) {
+                Logger.info('Critical ES6 modules already loaded via import statements');
+            }
             }
         }
         
@@ -87,6 +91,7 @@
             });
             
             if (window.IS_DEV) {
+                // Logger no disponible aún en preload
                 console.log('📦 Module preload configured for non-ES6 resources');
             }
         }
@@ -116,7 +121,9 @@
                         feather.replace();
                         window.dispatchEvent(new CustomEvent('featherReady'));
                         if (window.IS_DEV) {
-                            console.log('✅ External resources loaded via ResourceOptimizer');
+                        if (window.IS_DEV) {
+                            Logger.success('External resources loaded via ResourceOptimizer');
+                        }
                         }
                     }
                     
@@ -126,7 +133,7 @@
                 }
                 
             } catch (error) {
-                console.warn('Error in optimized loading, falling back:', error);
+                Logger.warn('Error in optimized loading, falling back:', error);
                 await loadExternalResourcesFallback();
             }
         };
@@ -1562,7 +1569,7 @@
         
         if (startBtn && welcomeScreen && loginScreen) {
             startBtn.addEventListener('click', () => {
-                console.log('Botón Comenzar clickeado - Event Listener Directo');
+                // Debug removido para producción
                 
                 // Ocultar welcome screen completamente
                 welcomeScreen.style.display = 'none';
@@ -1583,11 +1590,7 @@
                 loginScreen.classList.remove('hidden', 'opacity-0');
                 loginScreen.classList.add('opacity-100');
                 
-                console.log('🚀 LOGIN SCREEN FORZADO COMPLETAMENTE');
-                console.log('Display:', loginScreen.style.display);
-                console.log('Opacity:', loginScreen.style.opacity);
-                console.log('Z-index:', loginScreen.style.zIndex);
-                console.log('Position:', loginScreen.style.position);
+                // Debug de pantalla de login removido para producción
             });
         } else {
             console.error('No se encontraron los elementos necesarios:', {
@@ -2508,6 +2511,12 @@
             close(modal) {
                 this._currentlyOpen = null;
                 modal.content.classList.add('opacity-0', '-translate-y-10');
+                
+                // Reset z-index for task modal when closing
+                if (modal === DOM.taskModal) {
+                    modal.el.style.zIndex = '50';
+                }
+                
                 setTimeout(() => modal.el.classList.add('hidden'), 300);
                 document.removeEventListener('keydown', this._handleKeydown);
             },
@@ -3101,20 +3110,27 @@
             },
     
             // -- Lógica de acciones --
-            openTaskModal(taskId = null, dateString = null, isKaizen = false) {
+            openTaskModal(taskId = null, dateString = null, isKaizen = false, fromCalendar = false) {
                 const modal = DOM.taskModal;
                 modal.form.reset();
                 UIManager.renderProjectFilters();
-    
+
                 // Reset placeholders
                 modal.nameInput.placeholder = '';
                 modal.descriptionInput.placeholder = '';
-    
+
+                // Adjust z-index if opened from calendar using inline styles for higher specificity
+                if (fromCalendar) {
+                    modal.el.style.zIndex = '60';
+                } else {
+                    modal.el.style.zIndex = '50';
+                }
+
                 if (isKaizen) {
                     modal.nameInput.placeholder = "Mi primera microacción";
                     modal.descriptionInput.placeholder = "Ej: Leer una página de un libro.";
                 }
-    
+
                 if (taskId) {
                     const task = AppState.tasks.find(t => t.id === taskId);
                     modal.title.textContent = 'Editar Tarea';
@@ -3137,9 +3153,7 @@
                     }
                 }
                 ModalManager.open(modal);
-            },
-    
-            handleTaskFormSubmit(e) {
+            },            handleTaskFormSubmit(e) {
                 e.preventDefault();
                 const modal = DOM.taskModal;
                 UIManager.setButtonLoading(modal.saveBtn, true);
@@ -3404,6 +3418,48 @@
                 this.showNotification(`Tarea movida a ${statusNames[newStatus]}`, 'success');
             },
 
+            // ✨ FUNCIÓN: Alternar completado de tarea
+            async toggleTaskCompletion(taskId) {
+                const task = AppState.tasks.find(t => t.id === taskId);
+                if (!task) return;
+
+                // Alternar estado de completado
+                task.completed = !task.completed;
+                task.status = task.completed ? 'completed' : 'todo';
+                task.completedAt = task.completed ? Date.now() : null;
+
+                try {
+                    // Guardar en base de datos
+                    await window.dataManager.saveData('tasks', taskId, task);
+                    
+                    // Invalidar cache de tareas
+                    this.invalidateTasksCache();
+                    
+                    // Actualizar UI
+                    UIManager.renderTasks();
+                    UIManager.renderDashboard();
+                    UIManager.renderCalendar();
+                    this.updateNotificationIndicator();
+
+                    // Mostrar notificación
+                    const message = task.completed ? 'Tarea completada' : 'Tarea marcada como pendiente';
+                    this.showNotification(message, 'success');
+                    
+                    // Refrescar modal del calendario si está abierto
+                    if (!DOM.calendarDayModal.el.classList.contains('hidden')) {
+                        this.openCalendarDayModal(AppState.selectedCalendarDate);
+                    }
+                } catch (error) {
+                    // Revertir cambio si falló
+                    task.completed = !task.completed;
+                    task.status = task.completed ? 'completed' : 'todo';
+                    task.completedAt = task.completed ? Date.now() : null;
+                    
+                    console.error('Error al actualizar tarea:', error);
+                    this.showNotification('Error al actualizar la tarea', 'error');
+                }
+            },
+
             duplicateTask(taskId) {
                 const originalTask = AppState.tasks.find(t => t.id === taskId);
                 if (!originalTask) return;
@@ -3484,27 +3540,59 @@
                 const modal = DOM.calendarDayModal;
                 
                 if (tasks.length > 0) {
-                    // Renderizar lista de tareas
-                    const taskList = tasks.map(task => `
-                        <div class="calendar-task-item ${task.completed ? 'completed' : ''} ${task.priority ? task.priority + '-priority' : 'medium-priority'}">
-                            <div class="flex items-center justify-between">
+                    // Renderizar lista de tareas con diseño completo
+                    const taskList = tasks.map(task => {
+                        // Obtener nombre del proyecto real
+                        const project = AppState.projects.find(p => p.id === task.project);
+                        const projectName = project ? project.name : null;
+                        
+                        // Mapear prioridades correctamente en español
+                        const priorityMap = {
+                            'high': 'Alta',
+                            'medium': 'Media', 
+                            'low': 'Baja'
+                        };
+                        const priorityText = priorityMap[task.priority] || 'Media';
+                        
+                        return `
+                        <div class="p-4 border-l-4 ${task.priority === 'high' ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 
+                                                    task.priority === 'medium' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' : 
+                                                    'border-green-500 bg-green-50 dark:bg-green-900/20'} rounded-r-lg mb-3">
+                            <div class="flex items-start justify-between">
                                 <div class="flex-1">
-                                    <h4 class="font-medium ${task.completed ? 'line-through' : ''}">${task.title}</h4>
-                                    ${task.description ? `<p class="text-sm text-gray-600 dark:text-gray-400">${task.description}</p>` : ''}
-                                    <div class="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                                        <span class="capitalize">${task.priority || 'media'} prioridad</span>
-                                        ${task.project ? `<span>• ${task.project}</span>` : ''}
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <h4 class="font-semibold ${task.completed ? 'line-through text-gray-500' : 'text-theme-primary'}">${task.title}</h4>
+                                        ${task.completed ? '<span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Completada</span>' : ''}
+                                    </div>
+                                    ${task.description ? '<p class="text-sm text-gray-600 dark:text-gray-400 mb-2">' + task.description + '</p>' : ''}
+                                    <div class="flex items-center gap-3 text-xs">
+                                        <span class="flex items-center gap-1 ${task.priority === 'high' ? 'text-red-600' : 
+                                                                              task.priority === 'medium' ? 'text-yellow-600' : 
+                                                                              'text-green-600'}">
+                                            <i data-feather="${task.priority === 'high' ? 'alert-triangle' : 
+                                                             task.priority === 'medium' ? 'minus-circle' : 
+                                                             'circle'}" class="w-3 h-3"></i>
+                                            ${priorityText} Prioridad
+                                        </span>
+                                        ${projectName ? '<span class="text-blue-600">• ' + projectName + '</span>' : ''}
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2 ml-4">
+                                    <button onclick="App.openTaskModal('${task.id}', null, false, true)" 
+                                            class="p-1.5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors" 
+                                            title="Editar tarea">
+                                        <i data-feather="edit" class="w-4 h-4"></i>
+                                    </button>
                                     <button onclick="App.toggleTaskCompletion('${task.id}')" 
-                                            class="p-2 rounded-full ${task.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'} hover:bg-opacity-80">
-                                        <i data-feather="${task.completed ? 'check-circle' : 'circle'}" class="w-4 h-4"></i>
+                                            class="p-1.5 rounded-full ${task.completed ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-green-100 text-green-600 hover:bg-green-200'} transition-colors"
+                                            title="${task.completed ? 'Marcar como pendiente' : 'Marcar como completada'}">
+                                        <i data-feather="${task.completed ? 'x-circle' : 'check-circle'}" class="w-4 h-4"></i>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    `).join('');
+                        `;
+                    }).join('');
                     
                     if (modal.mobileTasks) modal.mobileTasks.innerHTML = taskList;
                     if (modal.desktopTasks) modal.desktopTasks.innerHTML = taskList;
@@ -3531,12 +3619,23 @@
                 // Cerrar modal
                 DOM.calendarDayModal.el.classList.add('hidden');
                 
-                // Ir a la sección de tareas
+                // Ir a la sección de tareas usando función global
+                const navigate = (sectionId) => {
+                    DOM.sections.forEach(s => s.classList.add('hidden'));
+                    document.getElementById(sectionId).classList.remove('hidden');
+                    
+                    [...DOM.navButtons, ...DOM.mobileNavButtons].forEach(btn => {
+                        btn.classList.toggle('bg-theme-primary', btn.dataset.section === sectionId);
+                        btn.classList.toggle('text-white', btn.dataset.section === sectionId);
+                    });
+                    DOM.mobileMenu.classList.add('hidden');
+                };
+                
                 navigate('tasks');
                 
                 // Abrir modal de crear tarea con fecha preseleccionada
                 setTimeout(() => {
-                    this.openTaskModal(null, dateString);
+                    App.openTaskModal(null, dateString);
                 }, 300);
             },
             
@@ -4338,6 +4437,9 @@
     
         // Iniciar la aplicación
         App.init();
+        
+        // ✨ HACER APP ACCESIBLE GLOBALMENTE para onclick handlers
+        window.App = App;
     });
     </script>
     

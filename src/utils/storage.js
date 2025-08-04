@@ -49,7 +49,9 @@ export class DataManager {
     if (this.syncQueue.length === 0) return;
     
     if (import.meta.env.DEV) {
-      console.log('🔄 Procesando cola de sincronización...');
+    if (import.meta.env.DEV) {
+      Logger.info('Procesando cola de sincronización...');
+    }
     }
     
     for (const operation of this.syncQueue) {
@@ -61,7 +63,7 @@ export class DataManager {
         }
       } catch (error) {
         if (import.meta.env.DEV) {
-          console.error('Error sincronizando:', error);
+          Logger.error('Error sincronizando:', error);
         }
       }
     }
@@ -71,7 +73,9 @@ export class DataManager {
     localStorage.setItem('orion_last_sync', new Date().toISOString());
     this.emit('syncQueueChange', 0);
     if (import.meta.env.DEV) {
-      console.log('✅ Sincronización completada');
+    if (import.meta.env.DEV) {
+      Logger.success('Sincronización completada');
+    }
     }
   }
 
@@ -81,7 +85,9 @@ export class DataManager {
     
     if (!user || !user.uid) {
       if (import.meta.env.DEV) {
-        console.warn('⚠️ No hay usuario disponible para eliminar datos');
+      if (import.meta.env.DEV) {
+        Logger.warn('No hay usuario disponible para eliminar datos');
+      }
       }
       return false;
     }
@@ -98,7 +104,9 @@ export class DataManager {
       
       localStorage.setItem(`${user.uid}_${collectionName}_modified`, new Date().toISOString());
       if (import.meta.env.DEV) {
-        console.log(`🗑️ Elemento eliminado en modo local: ${collectionName}/${docId}`);
+      if (import.meta.env.DEV) {
+        Logger.db(`Elemento eliminado en modo local: ${collectionName}/${docId}`);
+      }
       }
       return true;
     } else {
@@ -114,7 +122,9 @@ export class DataManager {
           });
           
           if (import.meta.env.DEV) {
-            console.log('📡 Sin conexión - eliminación agregada a cola de sincronización');
+        if (import.meta.env.DEV) {
+          Logger.info('Sin conexión - eliminación agregada a cola de sincronización');
+        }
           }
           return true;
         }
@@ -124,13 +134,15 @@ export class DataManager {
         
         await deleteDoc(docRef);
         if (import.meta.env.DEV) {
-          console.log(`🗑️ Elemento eliminado de Firebase: ${collectionName}/${docId}`);
+        if (import.meta.env.DEV) {
+          Logger.db(`Elemento eliminado de Firebase: ${collectionName}/${docId}`);
+        }
         }
         return true;
         
       } catch (error) {
         if (import.meta.env.DEV) {
-          console.error(`❌ Error eliminando ${collectionName}/${docId} de Firebase:`, error);
+          Logger.error(`Error eliminando ${collectionName}/${docId} de Firebase:`, error);
         }
         
         // Agregar a cola de sincronización como fallback
@@ -152,7 +164,9 @@ export class DataManager {
     
     if (!user || !user.uid) {
       if (import.meta.env.DEV) {
-        console.warn('⚠️ No hay usuario disponible para guardar datos');
+      if (import.meta.env.DEV) {
+        Logger.warn('No hay usuario disponible para guardar datos');
+      }
       }
       return false;
     }
@@ -173,7 +187,9 @@ export class DataManager {
       // Disparar listeners locales
       this.notifyListeners(collectionName, this.loadDataSync(collectionName));
       if (import.meta.env.DEV) {
-        console.log(`💾 Datos guardados en modo local: ${collectionName}`);
+      if (import.meta.env.DEV) {
+        Logger.db(`Datos guardados en modo local: ${collectionName}`);
+      }
       }
       return true;
     } else {
@@ -192,7 +208,9 @@ export class DataManager {
           });
           
           if (import.meta.env.DEV) {
-            console.log('📡 Sin conexión - datos guardados localmente para sincronizar');
+        if (import.meta.env.DEV) {
+          Logger.info('Sin conexión - datos guardados localmente para sincronizar');
+        }
           }
           return true;
         }
@@ -212,7 +230,7 @@ export class DataManager {
           
           await batch.commit();
           if (import.meta.env.DEV) {
-            console.log(`✅ ${collectionName} guardado en Firebase`);
+            Logger.db(`${collectionName} guardado en Firebase`);
           }
         } else {
           // Si es un objeto, guardar como documento único
@@ -222,7 +240,7 @@ export class DataManager {
             lastModified: Date.now() 
           });
           if (import.meta.env.DEV) {
-            console.log(`✅ ${collectionName} guardado en Firebase`);
+            Logger.db(`${collectionName} guardado en Firebase`);
           }
         }
         
@@ -233,7 +251,7 @@ export class DataManager {
         return true;
       } catch (error) {
         if (import.meta.env.DEV) {
-          console.error(`❌ Error guardando ${collectionName} en Firebase:`, error);
+          Logger.error(`Error guardando ${collectionName} en Firebase:`, error);
         }
         
         // Fallback a localStorage
@@ -248,7 +266,9 @@ export class DataManager {
         });
         
         if (import.meta.env.DEV) {
-          console.log(`💾 ${collectionName} guardado localmente para sincronizar después`);
+        if (import.meta.env.DEV) {
+          Logger.db(`${collectionName} guardado localmente para sincronizar después`);
+        }
         }
         return true; // Devolver true porque se guardó localmente
       }
@@ -536,7 +556,9 @@ export class DataManager {
       
       await this.saveData('tasks', sampleTasks);
       if (import.meta.env.DEV) {
-        console.log('📝 Tareas de ejemplo creadas');
+      if (import.meta.env.DEV) {
+        Logger.db('Tareas de ejemplo creadas');
+      }
       }
     }
     
@@ -553,7 +575,9 @@ export class DataManager {
       
       await this.saveData('projects', sampleProjects);
       if (import.meta.env.DEV) {
-        console.log('📂 Proyectos de ejemplo creados');
+      if (import.meta.env.DEV) {
+        Logger.db('Proyectos de ejemplo creados');
+      }
       }
     }
 
@@ -572,7 +596,9 @@ export class DataManager {
       
       await this.saveData('user_config', defaultConfig);
       if (import.meta.env.DEV) {
-        console.log('⚙️ Configuración inicial creada');
+      if (import.meta.env.DEV) {
+        Logger.db('Configuración inicial creada');
+      }
       }
     }
   }

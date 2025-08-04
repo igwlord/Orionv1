@@ -16,8 +16,8 @@ class Logger {
             DEBUG: 3    // Solo en desarrollo con flag especial
         };
         
-        // Nivel actual (en producción solo ERROR y WARN críticos)
-        this.currentLevel = this.isProduction ? this.levels.WARN : this.levels.DEBUG;
+        // Nivel actual (en producción solo ERROR críticos)
+        this.currentLevel = this.isProduction ? this.levels.ERROR : this.levels.DEBUG;
         
         // Configuración de colores para desarrollo
         this.colors = {
@@ -113,37 +113,22 @@ class Logger {
     // =================================================================================
     
     _log(level, emoji, message, ...args) {
-        const timestamp = new Date().toLocaleTimeString();
-        const prefix = `${emoji} [${timestamp}]`;
-        
         if (this.isDevelopment) {
             // En desarrollo: logs con colores y formato completo
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = `${emoji} [${timestamp}]`;
             console.log(
                 `%c${prefix} ${message}`,
                 `color: ${this.colors[level]}; font-weight: bold;`,
                 ...args
             );
         } else {
-            // En producción: logs mínimos y solo críticos
+            // En producción: solo errores críticos, sin timestamp ni formato
             if (level === 'error') {
-                console.error(prefix, message, ...args);
-            } else if (level === 'warn' && this._isCriticalWarning(message)) {
-                console.warn(prefix, message, ...args);
+                console.error(`❌ ${message}`, ...args);
             }
-            // INFO y DEBUG no se muestran en producción
+            // Todos los demás logs se suprimen en producción
         }
-    }
-    
-    _isCriticalWarning(message) {
-        // Solo warnings críticos en producción
-        const criticalKeywords = [
-            'firebase', 'auth', 'network', 'storage', 'critical', 
-            'failed', 'error', 'timeout', 'connection'
-        ];
-        
-        return criticalKeywords.some(keyword => 
-            message.toLowerCase().includes(keyword)
-        );
     }
 
     // =================================================================================

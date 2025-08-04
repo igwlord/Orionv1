@@ -83,11 +83,11 @@ class ResourceOptimizer {
             this.metrics.resourceLoadTimes.set(resourcePath, loadTime);
             
             if (window.IS_DEV) {
-                console.log(`✅ Resource loaded: ${resourcePath} (${loadTime.toFixed(2)}ms)`);
+                Logger.perf(`Resource loaded: ${resourcePath} (${loadTime.toFixed(2)}ms)`);
             }
 
         } catch (error) {
-            console.error(`❌ Failed to load resource: ${resourcePath}`, error);
+            Logger.error(`Failed to load resource: ${resourcePath}`, error);
             throw error;
         }
     }

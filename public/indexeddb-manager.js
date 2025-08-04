@@ -470,7 +470,6 @@ class IndexedDBManager {
             }
             
             return null;
-            return null;
         }
     }
 
