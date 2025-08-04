@@ -6,15 +6,10 @@ const CACHE_NAME = 'orion-cache-v1';
 const STATIC_CACHE_NAME = 'orion-static-v1';
 const DYNAMIC_CACHE_NAME = 'orion-dynamic-v1';
 
-// Assets críticos para precachear
+// Assets críticos para precachear (solo los esenciales)
 const STATIC_ASSETS = [
   '/',
-  '/index.html',
-  '/favicon.svg',
-  'https://cdn.tailwindcss.com',
-  'https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js',
-  'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap'
+  '/index.html'
 ];
 
 // URLs que requieren network-first (solo las que existen en el sitio)
@@ -32,15 +27,24 @@ self.addEventListener('install', (event) => {
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
         console.log('📦 Precaching static assets...');
-        return cache.addAll(STATIC_ASSETS);
+        // Cachear cada asset individualmente para evitar que falle todo
+        return Promise.allSettled(
+          STATIC_ASSETS.map(asset => 
+            cache.add(asset).catch(err => {
+              console.warn('⚠️ Failed to cache:', asset, err);
+            })
+          )
+        );
       })
       .then(() => {
-        console.log('✅ Static assets cached successfully');
+        console.log('✅ Static assets cached (with any errors ignored)');
         // Forzar activación inmediata
         return self.skipWaiting();
       })
       .catch((error) => {
-        console.error('❌ Error caching static assets:', error);
+        console.error('❌ Error in SW install:', error);
+        // Continuar con la instalación incluso si falla el cacheo
+        return self.skipWaiting();
       })
   );
 });
