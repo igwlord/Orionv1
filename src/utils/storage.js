@@ -1,6 +1,9 @@
 import { collection, getDocs, setDoc, doc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { db, auth, isGuestMode, getCurrentUser } from '../firebase-init.js';
 
+// Verificar si estamos en desarrollo
+const isDev = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV;
+
 // Sistema de almacenamiento dual: Firebase/LocalStorage
 export class DataManager {
   constructor() {
@@ -48,8 +51,8 @@ export class DataManager {
   async processSyncQueue() {
     if (this.syncQueue.length === 0) return;
     
-    if (import.meta.env.DEV) {
-    if (import.meta.env.DEV) {
+    if (isDev) {
+    if (isDev) {
       Logger.info('Procesando cola de sincronización...');
     }
     }
@@ -62,7 +65,7 @@ export class DataManager {
           await this.saveData(operation.collection, operation.data, operation.docId);
         }
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (isDev) {
           Logger.error('Error sincronizando:', error);
         }
       }
@@ -72,8 +75,8 @@ export class DataManager {
     localStorage.removeItem('orion_sync_queue');
     localStorage.setItem('orion_last_sync', new Date().toISOString());
     this.emit('syncQueueChange', 0);
-    if (import.meta.env.DEV) {
-    if (import.meta.env.DEV) {
+    if (isDev) {
+    if (isDev) {
       Logger.success('Sincronización completada');
     }
     }
@@ -84,8 +87,8 @@ export class DataManager {
     const user = getCurrentUser();
     
     if (!user || !user.uid) {
-      if (import.meta.env.DEV) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
+      if (isDev) {
         Logger.warn('No hay usuario disponible para eliminar datos');
       }
       }
@@ -103,8 +106,8 @@ export class DataManager {
       }
       
       localStorage.setItem(`${user.uid}_${collectionName}_modified`, new Date().toISOString());
-      if (import.meta.env.DEV) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
+      if (isDev) {
         Logger.db(`Elemento eliminado en modo local: ${collectionName}/${docId}`);
       }
       }
@@ -121,8 +124,8 @@ export class DataManager {
             timestamp: Date.now()
           });
           
-          if (import.meta.env.DEV) {
-        if (import.meta.env.DEV) {
+          if (isDev) {
+        if (isDev) {
           Logger.info('Sin conexión - eliminación agregada a cola de sincronización');
         }
           }
@@ -133,15 +136,15 @@ export class DataManager {
         const docRef = doc(db, `users/${user.uid}/${collectionName}`, docId);
         
         await deleteDoc(docRef);
-        if (import.meta.env.DEV) {
-        if (import.meta.env.DEV) {
+        if (isDev) {
+        if (isDev) {
           Logger.db(`Elemento eliminado de Firebase: ${collectionName}/${docId}`);
         }
         }
         return true;
         
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (isDev) {
           Logger.error(`Error eliminando ${collectionName}/${docId} de Firebase:`, error);
         }
         
@@ -163,8 +166,8 @@ export class DataManager {
     const user = getCurrentUser();
     
     if (!user || !user.uid) {
-      if (import.meta.env.DEV) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
+      if (isDev) {
         Logger.warn('No hay usuario disponible para guardar datos');
       }
       }
@@ -186,8 +189,8 @@ export class DataManager {
       
       // Disparar listeners locales
       this.notifyListeners(collectionName, this.loadDataSync(collectionName));
-      if (import.meta.env.DEV) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
+      if (isDev) {
         Logger.db(`Datos guardados en modo local: ${collectionName}`);
       }
       }
@@ -207,8 +210,8 @@ export class DataManager {
             timestamp: Date.now()
           });
           
-          if (import.meta.env.DEV) {
-        if (import.meta.env.DEV) {
+          if (isDev) {
+        if (isDev) {
           Logger.info('Sin conexión - datos guardados localmente para sincronizar');
         }
           }
@@ -229,7 +232,7 @@ export class DataManager {
           });
           
           await batch.commit();
-          if (import.meta.env.DEV) {
+          if (isDev) {
             Logger.db(`${collectionName} guardado en Firebase`);
           }
         } else {
@@ -239,7 +242,7 @@ export class DataManager {
             ...data, 
             lastModified: Date.now() 
           });
-          if (import.meta.env.DEV) {
+          if (isDev) {
             Logger.db(`${collectionName} guardado en Firebase`);
           }
         }
@@ -250,7 +253,7 @@ export class DataManager {
         
         return true;
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (isDev) {
           Logger.error(`Error guardando ${collectionName} en Firebase:`, error);
         }
         
@@ -265,8 +268,8 @@ export class DataManager {
           timestamp: Date.now()
         });
         
-        if (import.meta.env.DEV) {
-        if (import.meta.env.DEV) {
+        if (isDev) {
+        if (isDev) {
           Logger.db(`${collectionName} guardado localmente para sincronizar después`);
         }
         }
@@ -279,7 +282,7 @@ export class DataManager {
   loadDataSync(collectionName) {
     const user = getCurrentUser();
     if (!user || !user.uid) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.warn('⚠️ No hay usuario disponible para cargar datos');
       }
       return null;
@@ -294,14 +297,14 @@ export class DataManager {
     const user = getCurrentUser();
     
     if (!user || !user.uid) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.warn('⚠️ No hay usuario disponible para cargar datos');
       }
       return null;
     }
     
     if (isGuestMode) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.log(`📱 Cargando ${collectionName} en modo local`);
       }
       return this.loadDataSync(collectionName);
@@ -325,19 +328,19 @@ export class DataManager {
             timestamp: Date.now()
           }));
           
-          if (import.meta.env.DEV) {
+          if (isDev) {
             console.log(`☁️ ${collectionName} cargado desde Firebase`);
           }
           return data;
         }
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (isDev) {
           console.warn(`⚠️ Error cargando ${collectionName} desde Firebase:`, error.message);
         }
       }
       
       // Fallback a cache local
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.log(`📱 Usando cache local para ${collectionName}`);
       }
       return this.loadFromCache(collectionName);
@@ -363,7 +366,7 @@ export class DataManager {
         return JSON.parse(backupData);
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.error('❌ Error cargando desde cache:', error);
       }
     }
@@ -376,7 +379,7 @@ export class DataManager {
     const user = getCurrentUser();
     
     if (!user || !user.uid) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.warn('⚠️ No hay usuario disponible para configurar listeners');
       }
       return;
@@ -412,7 +415,7 @@ export class DataManager {
     const user = getCurrentUser();
     
     if (!user || !user.uid || !auth?.currentUser) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.log('⚠️ Usuario no autenticado en Firebase, usando modo local');
       }
       return;
@@ -440,14 +443,14 @@ export class DataManager {
             
             callback(data);
           } catch (error) {
-            if (import.meta.env.DEV) {
+            if (isDev) {
               console.error('Error procesando snapshot:', error);
             }
           }
         },
         (error) => {
           // Manejo silencioso de errores y fallback a datos locales
-          if (import.meta.env.DEV) {
+          if (isDev) {
             console.log(`💾 Usando datos locales para ${collectionName}`);
           }
           const cachedData = this.loadFromCache(collectionName);
@@ -462,7 +465,7 @@ export class DataManager {
         listener: unsubscribe 
       });
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.error('❌ Error configurando listener de Firebase:', error);
       }
       
@@ -555,8 +558,8 @@ export class DataManager {
       ];
       
       await this.saveData('tasks', sampleTasks);
-      if (import.meta.env.DEV) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
+      if (isDev) {
         Logger.db('Tareas de ejemplo creadas');
       }
       }
@@ -574,8 +577,8 @@ export class DataManager {
       ];
       
       await this.saveData('projects', sampleProjects);
-      if (import.meta.env.DEV) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
+      if (isDev) {
         Logger.db('Proyectos de ejemplo creados');
       }
       }
@@ -595,8 +598,8 @@ export class DataManager {
       };
       
       await this.saveData('user_config', defaultConfig);
-      if (import.meta.env.DEV) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
+      if (isDev) {
         Logger.db('Configuración inicial creada');
       }
       }
@@ -630,11 +633,11 @@ export class DataManager {
             await this.saveData(collection, data);
           }
           
-          if (import.meta.env.DEV) {
+          if (isDev) {
             console.log(`📦 Migrado ${collection} al usuario ${user.uid}`);
           }
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (isDev) {
             console.error(`❌ Error migrando ${collection}:`, error);
           }
         }
@@ -642,7 +645,7 @@ export class DataManager {
     }
 
     if (migrationCount > 0) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.log(`✅ Migración completada: ${migrationCount} colecciones`);
       }
       // Marcar migración como completada
@@ -656,7 +659,7 @@ export class DataManager {
       // Verificar que hay un usuario disponible
       const user = getCurrentUser();
       if (!user || !user.uid) {
-        if (import.meta.env.DEV) {
+        if (isDev) {
           console.log('⏳ Esperando usuario para inicializar almacenamiento...');
         }
         return false;
@@ -682,12 +685,12 @@ export class DataManager {
         await this.processSyncQueue();
       }
       
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.log('✅ Sistema de almacenamiento inicializado');
       }
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (isDev) {
         console.error('❌ Error inicializando sistema de almacenamiento:', error);
       }
       return false;

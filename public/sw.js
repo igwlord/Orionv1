@@ -17,12 +17,9 @@ const STATIC_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap'
 ];
 
-// URLs que requieren network-first
+// URLs que requieren network-first (solo las que existen en el sitio)
 const NETWORK_FIRST_URLS = [
-  '/src/firebase-config.js',
-  '/src/firebase-init.js',
-  '/src/auth.js',
-  '/src/utils/storage.js'
+  '/index.html'
 ];
 
 // =================================================================================
